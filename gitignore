@@ -1,0 +1,51 @@
+# ── Model outputs & large files ───────────────────────────────────────────────
+*.keras
+*.h5
+*.pkl
+*.pt
+*.pth
+
+# ── Data files ────────────────────────────────────────────────────────────────
+*.json
+*.csv
+*.npy
+*.npz
+
+# ── Exceptions — keep these json files ────────────────────────────────────────
+!results/cifar10_all_results.json
+!results/cifar100_all_results.json
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Jupyter Notebook checkpoints ──────────────────────────────────────────────
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# ── Virtual environments ───────────────────────────────────────────────────────
+venv/
+env/
+.env/
+.venv/
+
+# ── OS files ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE files ─────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Colab outputs ─────────────────────────────────────────────────────────────
+outputs/
+/content/
