@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Architecture — DS Lab 2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f8f9fa; color: #222; padding: 32px 24px; }
+
+  h1 { text-align: center; color: #2E75B6; font-size: 22px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; font-size: 13px; margin-bottom: 32px; }
+
+  .phase-wrapper { display: flex; gap: 16px; margin-bottom: 8px; }
+  .phase-label {
+    writing-mode: vertical-rl; text-orientation: mixed;
+    transform: rotate(180deg);
+    font-size: 11px; font-weight: bold; letter-spacing: 2px;
+    color: #999; min-width: 24px; text-align: center;
+    padding: 12px 0;
+  }
+
+  .phase-box {
+    flex: 1; border: 1.5px dashed #ccc; border-radius: 14px;
+    padding: 18px 20px; position: relative;
+  }
+  .phase-box h2 { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: #333; }
+
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .arrow { color: #888; font-size: 18px; flex-shrink: 0; }
+  .dots  { color: #aaa; font-size: 18px; letter-spacing: 2px; }
+
+  .node {
+    border-radius: 10px; padding: 10px 16px; text-align: center;
+    cursor: pointer; transition: opacity 0.15s, transform 0.15s;
+    min-width: 110px;
+  }
+  .node:hover { opacity: 0.82; transform: scale(1.03); }
+  .node .title { font-size: 13px; font-weight: 600; }
+  .node .sub   { font-size: 11px; margin-top: 3px; opacity: 0.85; }
+
+  .teal   { background: #1D9E75; color: #fff; }
+  .purple { background: #7F77DD; color: #fff; }
+  .coral  { background: #D85A30; color: #fff; }
+  .gray   { background: #888780; color: #fff; }
+  .indigo { background: #534AB7; color: #fff; }
+  .amber  { background: #BA7517; color: #fff; }
+
+  .wide-node {
+    border-radius: 10px; padding: 10px 20px; text-align: center;
+    cursor: pointer; transition: opacity 0.15s, transform 0.15s;
+    width: 100%; margin-top: 14px;
+  }
+  .wide-node:hover { opacity: 0.82; transform: scale(1.01); }
+  .wide-node .title { font-size: 13px; font-weight: 600; }
+  .wide-node .sub   { font-size: 11px; margin-top: 3px; opacity: 0.85; }
+
+  .connector {
+    display: flex; justify-content: center; align-items: center;
+    gap: 8px; padding: 6px 0; color: #888; font-size: 12px;
+  }
+  .connector .line { flex: 1; max-width: 60px; height: 1px; background: #ccc; }
+
+  .legend {
+    display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+    margin-top: 24px; padding-top: 16px; border-top: 1px solid #ddd;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555; }
+  .legend-dot  { width: 12px; height: 12px; border-radius: 3px; }
+
+  /* Tooltip */
+  .tooltip {
+    display: none; position: fixed; background: #1a1a2e; color: #fff;
+    padding: 10px 14px; border-radius: 8px; font-size: 12px;
+    max-width: 280px; line-height: 1.6; z-index: 999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    pointer-events: none;
+  }
+  .tooltip.show { display: block; }
+  .tooltip strong { color: #9FE1CB; display: block; margin-bottom: 4px; }
+
+  /* Phase 3 columns */
+  .cols { display: flex; gap: 12px; margin-top: 12px; }
+  .col  { flex: 1; }
+  .col h3 { font-size: 12px; color: #666; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+  .metric-row { display: flex; gap: 8px; margin-top: 10px; }
+  .metric {
+    flex: 1; background: #F0997B; border-radius: 8px;
+    padding: 8px 6px; text-align: center; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .metric:hover { opacity: 0.8; }
+  .metric .m-title { font-size: 11px; font-weight: 600; color: #4A1B0C; }
+  .metric .m-sub   { font-size: 10px; color: #712B13; margin-top: 2px; }
+  .metric.primary  { background: #D85A30; }
+  .metric.primary .m-title { color: #fff; }
+  .metric.primary .m-sub   { color: #F5C4B3; }
+
+  @media print {
+    body { background: white; }
+    .tooltip { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Project Architecture — DS Lab 2</h1>
+<p class="subtitle">Evaluating Black-Box Membership Inference Attacks in Federated Learning Systems &nbsp;|&nbsp; Abdihakim Yussuf Abdi &nbsp;|&nbsp; 2026<br>
+<span style="font-size:11px;color:#aaa">Hover over any component to learn more</span></p>
+
+<!-- ── PHASE 1 ─────────────────────────────────────────────────────────────── -->
+<div class="phase-wrapper">
+  <div class="phase-label">PHASE 1</div>
+  <div class="phase-box">
+    <h2>Federated Learning Simulation</h2>
+    <div class="row">
+      <div class="node teal"
+        data-tip="<strong>CIFAR-10 / CIFAR-100</strong>60,000 images (50K train / 10K test). Pixel values normalised to [0,1]. Data shuffled and split equally across N clients — IID partitioning. Member indices saved for attack phase.">
+        <div class="title">CIFAR-10/100</div>
+        <div class="sub">Partitioned dataset</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node teal"
+        data-tip="<strong>Client 1 — Local training</strong>Receives global weights from server. Trains locally for 3 epochs on 10,000 private images. Returns updated weights. Raw data never leaves the client.">
+        <div class="title">Client 1</div>
+        <div class="sub">Local training</div>
+      </div>
+      <div class="node teal"
+        data-tip="<strong>Client 2 — Local training</strong>Same process as Client 1 but on a different private data partition. Each client trains independently without seeing other clients' data.">
+        <div class="title">Client 2</div>
+        <div class="sub">Local training</div>
+      </div>
+      <div class="dots">···</div>
+      <div class="node teal"
+        data-tip="<strong>Client N — Local training</strong>Default config uses 5 clients (N=5). For RQ2, N is varied: 2, 5, 10. More clients = more averaging = potentially less memorisation per sample.">
+        <div class="title">Client N</div>
+        <div class="sub">Local training</div>
+      </div>
+    </div>
+
+    <div class="wide-node teal" style="margin-top:14px;"
+      data-tip="<strong>Central Server — FedAvg Aggregation</strong>Collects weight updates from all clients. Computes weighted average: w(t+1) = Σ (n_k / n) × w_k(t). Each client weighted by its dataset size. Produces one global model. Repeats for 10 communication rounds. Global model accuracy tracked each round.">
+      <div class="title">Central Server</div>
+      <div class="sub">FedAvg aggregation → global model &nbsp;|&nbsp; w(t+1) = Σ (n_k / n) × w_k(t)</div>
+    </div>
+  </div>
+</div>
+
+<div class="connector">
+  <div class="line"></div>
+  <span>query global model</span>
+  <div class="line"></div>
+</div>
+
+<!-- ── PHASE 2 ─────────────────────────────────────────────────────────────── -->
+<div class="phase-wrapper">
+  <div class="phase-label">PHASE 2</div>
+  <div class="phase-box">
+    <h2>Attack Data Collection (Black-Box Access)</h2>
+    <div class="row">
+      <div class="node purple"
+        data-tip="<strong>Global Model — Black-Box Access</strong>Attacker CANNOT see: model weights, gradients, or training data. Attacker CAN ONLY: query the model and observe the softmax output vector. For CIFAR-10: 10-dimensional vector. For CIFAR-100: 100-dimensional vector. This is the only information the attacker has.">
+        <div class="title">Global model</div>
+        <div class="sub">Prediction probabilities</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node coral"
+        data-tip="<strong>Member Samples (label = 1)</strong>5,000 samples drawn from the training set — these were seen during FL training. The model has memorised them to some degree. Expected to show higher confidence scores. Indices tracked from partitioning step.">
+        <div class="title">Member samples</div>
+        <div class="sub">Seen during training</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node gray"
+        data-tip="<strong>Non-Member Samples (label = 0)</strong>5,000 samples drawn from the test set — never seen during training. The model generalises to these but does not memorise them. Expected to show lower, more uncertain confidence scores.">
+        <div class="title">Non-member samples</div>
+        <div class="sub">Unseen test data</div>
+      </div>
+    </div>
+
+    <div class="wide-node indigo"
+      data-tip="<strong>Attacker Dataset</strong>10,000 labelled examples: 5,000 members (label=1) + 5,000 non-members (label=0). Each example's feature vector = the model's softmax output for that sample (10-dim for CIFAR-10, 100-dim for CIFAR-100). This balanced dataset gives random-chance baseline of 0.50 for all metrics.">
+      <div class="title">Attacker dataset (confidence scores + labels)</div>
+      <div class="sub">10,000 samples × C-dimensional softmax vectors &nbsp;|&nbsp; members=1, non-members=0</div>
+    </div>
+  </div>
+</div>
+
+<div class="connector">
+  <div class="line"></div>
+  <span>train &amp; evaluate attacker</span>
+  <div class="line"></div>
+</div>
+
+<!-- ── PHASE 3 ─────────────────────────────────────────────────────────────── -->
+<div class="phase-wrapper">
+  <div class="phase-label">PHASE 3</div>
+  <div class="phase-box">
+    <h2>Membership Inference Attack &amp; Evaluation</h2>
+    <div class="cols">
+      <div class="col">
+        <h3>Attack Methods</h3>
+        <div class="node gray" style="margin-bottom:8px;min-width:0;width:100%;"
+          data-tip="<strong>Random Baseline</strong>Assigns uniform random scores between 0 and 1. Represents the theoretical performance floor. Expected AUC = 0.50. Any attack must beat this to show genuine privacy leakage.">
+          <div class="title">Random baseline</div>
+          <div class="sub">AUC floor = 0.50</div>
+        </div>
+        <div class="node teal" style="margin-bottom:8px;min-width:0;width:100%;background:#378ADD;"
+          data-tip="<strong>Threshold Attack</strong>Uses the maximum softmax confidence as the membership score. If max confidence > 0.5 → predict member. No training required. Simple signal-based approach. CIFAR-10 AUC: 0.536, CIFAR-100 AUC: 0.541.">
+          <div class="title">Threshold attack</div>
+          <div class="sub">Max confidence &gt; 0.5 → member</div>
+        </div>
+        <div class="node amber" style="margin-bottom:8px;min-width:0;width:100%;"
+          data-tip="<strong>Loss-Based Attack</strong>Uses negative cross-entropy loss as the membership score. Lower loss = model more confident = likely a member. Strongest baseline. CIFAR-10 AUC: 0.577, CIFAR-100 AUC: 0.618. Outperforms logistic regression on both datasets.">
+          <div class="title">Loss-based attack</div>
+          <div class="sub">Low loss → member</div>
+        </div>
+        <div class="node indigo" style="min-width:0;width:100%;"
+          data-tip="<strong>Logistic Regression (Proposed Method)</strong>Binary classifier trained on 70% of attacker dataset. Learns patterns in softmax confidence vectors. Simplest possible classifier — conservative lower bound. CIFAR-10 AUC: 0.497, CIFAR-100 AUC: 0.516. Deliberately simple so results are credible.">
+          <div class="title">Logistic regression</div>
+          <div class="sub">Proposed method (ours)</div>
+        </div>
+      </div>
+
+      <div class="col">
+        <h3>Evaluation Metrics</h3>
+        <div class="metric-row">
+          <div class="metric"
+            data-tip="<strong>Accuracy</strong>Proportion of correctly classified samples in attacker test set. Random baseline = 0.50. Simple but can be misleading if dataset is imbalanced.">
+            <div class="m-title">Accuracy</div>
+            <div class="m-sub">Baseline = 0.50</div>
+          </div>
+          <div class="metric"
+            data-tip="<strong>Precision</strong>Of all samples predicted as members, how many are actual members. Random baseline = 0.50. Measures how trustworthy positive predictions are.">
+            <div class="m-title">Precision</div>
+            <div class="m-sub">Baseline = 0.50</div>
+          </div>
+        </div>
+        <div class="metric-row">
+          <div class="metric"
+            data-tip="<strong>Recall</strong>Of all true members, how many did the attacker correctly identify. Random baseline = 0.50. Low recall means the attacker misses most true members.">
+            <div class="m-title">Recall</div>
+            <div class="m-sub">Baseline = 0.50</div>
+          </div>
+          <div class="metric primary"
+            data-tip="<strong>AUC — Primary Metric</strong>Area under the ROC curve. Measures the attacker's ability to rank members above non-members across ALL thresholds. Not affected by class imbalance. AUC = 0.50 → random chance. AUC = 1.0 → perfect attack. Most important metric in this study.">
+            <div class="m-title">AUC ★ Primary</div>
+            <div class="m-sub">Baseline = 0.50</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top:16px;">Experimental Variations</h3>
+        <div class="node teal" style="margin-bottom:8px;min-width:0;width:100%;background:#0F6E56;"
+          data-tip="<strong>RQ2 — Vary Number of Clients</strong>Pipeline re-run with 2, 5, and 10 clients. All other parameters fixed. Tests whether more federation = more privacy. Finding: AUC near 0.50 in all cases — no consistent effect. FedAvg protects equally regardless of client count.">
+          <div class="title">RQ2 — Vary clients (2, 5, 10)</div>
+          <div class="sub">Effect on attack AUC?</div>
+        </div>
+        <div class="node amber" style="min-width:0;width:100%;"
+          data-tip="<strong>RQ3 — Vary Model Complexity</strong>Small CNN (~200K params) vs Large CNN (~1.2M params). 5 clients, 6 rounds. Tests whether bigger models leak more. Finding: No consistent effect — large model did not produce higher AUC. FedAvg masks memorisation regardless of model size.">
+          <div class="title">RQ3 — Vary model size</div>
+          <div class="sub">Small CNN vs Large CNN</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── LEGEND ──────────────────────────────────────────────────────────────── -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div> FL simulation</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#7F77DD"></div> Attack collection</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#D85A30"></div> Attack method</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#534AB7"></div> Proposed method / dataset</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#BA7517"></div> Experimental variable</div>
+  <div class="legend-item" style="color:#aaa;font-size:11px;">★ Hover any box for details</div>
+</div>
+
+<!-- ── TOOLTIP ─────────────────────────────────────────────────────────────── -->
+<div class="tooltip" id="tip"></div>
+
+<script>
+const tip = document.getElementById('tip');
+document.querySelectorAll('[data-tip]').forEach(el => {
+  el.addEventListener('mouseenter', e => {
+    tip.innerHTML = el.getAttribute('data-tip');
+    tip.classList.add('show');
+  });
+  el.addEventListener('mousemove', e => {
+    let x = e.clientX + 16, y = e.clientY + 16;
+    if (x + 300 > window.innerWidth) x = e.clientX - 300;
+    if (y + 160 > window.innerHeight) y = e.clientY - 160;
+    tip.style.left = x + 'px';
+    tip.style.top  = y + 'px';
+  });
+  el.addEventListener('mouseleave', () => tip.classList.remove('show'));
+});
+</script>
+</body>
+</html>

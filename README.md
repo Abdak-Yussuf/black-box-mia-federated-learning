@@ -1,6 +1,6 @@
-# Evaluating Black-Box Membership Inference Attacks in Federated Learning Systems
+# Evaluating Black-Box Membership Inference Attacks in Federated Learning
 
-> **DS Lab 2** — Data Science Laboratory Project  
+> **DS Lab 2** — ELTE Faculty of Informatics  
 > **Author:** Abdihakim Yussuf Abdi  
 > **Date:** March 2026
 
@@ -8,9 +8,11 @@
 
 ## Overview
 
-This project investigates **privacy vulnerabilities in Federated Learning (FL)** systems by evaluating the effectiveness of **black-box Membership Inference Attacks (MIA)** against models trained using the Federated Averaging (FedAvg) algorithm.
+This project empirically evaluates **black-box Membership Inference Attacks (MIA)** against federated learning models trained using the **Federated Averaging (FedAvg)** algorithm.
 
-A Membership Inference Attack attempts to determine whether a specific data sample was used during model training — a serious privacy threat in sensitive domains such as healthcare and finance. This study empirically measures how well such attacks succeed against federated models, and how experimental conditions such as the number of clients, model complexity, and dataset difficulty affect attack success.
+A Membership Inference Attack tries to determine whether a specific data sample was used during model training — a serious privacy threat in domains like healthcare and finance. In a medical context, simply confirming that a patient's record was in a training dataset can reveal a sensitive diagnosis without ever accessing the record itself.
+
+**Core question:** Can an adversary who can only observe a model's softmax output probabilities determine whether a specific sample was used in training?
 
 ---
 
@@ -21,98 +23,123 @@ A Membership Inference Attack attempts to determine whether a specific data samp
 | **RQ1** | Can a black-box MIA successfully infer whether a sample was used during training of a federated learning model? |
 | **RQ2** | How does the number of federated clients affect the success rate of membership inference attacks? |
 | **RQ3** | How does model complexity influence privacy leakage in federated learning systems? |
+| **RQ4** | How does Non-IID data partitioning affect attack success compared to IID conditions? |
 
 ---
 
-## Project Structure
+## Key Results
+
+### RQ1 — Baseline Attack (IID, 5 clients, 10 rounds)
+
+| Attack Method | CIFAR-10 AUC | CIFAR-100 AUC |
+|---|---|---|
+| Random baseline | 0.4969 | 0.4969 |
+| Threshold attack | 0.5355 | 0.5408 |
+| **Loss-based attack** | **0.5768** | **0.6180** |
+| Logistic regression | 0.4967 | 0.5162 |
+
+### RQ2 — Number of Clients (CIFAR-10)
+
+| Clients | Global Accuracy | Attack AUC |
+|---|---|---|
+| 2 | 0.7069 | 0.4932 |
+| 5 | 0.6784 | 0.5123 |
+| 10 | 0.6415 | 0.5027 |
+
+### RQ3 — Model Complexity (CIFAR-10)
+
+| Model | Global Accuracy | Attack AUC |
+|---|---|---|
+| Small CNN (~200K params) | 0.6811 | 0.4946 |
+| Large CNN (~1.2M params) | 0.7442 | 0.5031 |
+
+### RQ4 — Non-IID vs IID
+
+| Dataset | Condition | Loss AUC | Change |
+|---|---|---|---|
+| CIFAR-10 | IID | 0.5401 | — |
+| CIFAR-10 | Non-IID (5/10 classes per client) | 0.5644 | **+0.024** |
+| CIFAR-100 | IID | 0.5606 | — |
+| CIFAR-100 | Non-IID (50/100 classes per client) | 0.5636 | +0.003 |
+
+---
+
+## Main Findings
+
+- **FedAvg is the dominant privacy mechanism.** Weight averaging dilutes individual memorisation signals regardless of client count or model size — explaining why RQ2 and RQ3 had no consistent effect.
+- **The vulnerability channel is prediction loss, not confidence patterns.** The logistic regression classifier (AUC ≈ 0.50) failed while the untrained loss-based heuristic partially succeeded (AUC 0.577–0.618). The membership signal is a single scalar, not distributed across the confidence vector.
+- **Dataset difficulty amplifies leakage.** Harder tasks (lower global accuracy) produce larger loss gaps between members and non-members — CIFAR-100 consistently showed higher attack AUC than CIFAR-10.
+- **Non-IID heterogeneity increases leakage when specialisation is strong.** Moderate Non-IID (5/10 classes per client on CIFAR-10) raised loss AUC by +0.024. Mild Non-IID (50/100 classes on CIFAR-100) had negligible effect.
+
+---
+
+## Repository Structure
 
 ```
 Data-Science-Lab-/
+│
 ├── Notebooks/
-│   ├── 01_fl_training.ipynb           # FL simulation with FedAvg on CIFAR-10
-│   ├── 02_mia_attack.ipynb            # MIA pipeline + RQ1, RQ2, RQ3 on CIFAR-10
-│   └── 03_cifar100_experiments.ipynb  # Full pipeline replicated on CIFAR-100
-├── Papers/
-│   ├── shokri2017_membership_inference.pdf
-│   ├── mcmahan2017_fedavg.pdf
-│   └── nasr2019_privacy_analysis.pdf
+│   ├── 01_cifar10_experiments.ipynb      # CIFAR-10: FL training + MIA + RQ1/2/3
+│   ├── 02_cifar100_experiments.ipynb     # CIFAR-100: FL training + MIA + dataset comparison
+│   ├── 03a_noniid_cifar10.ipynb          # Non-IID vs IID on CIFAR-10 (RQ4)
+│   └── 03b_noniid_cifar100.ipynb         # Non-IID vs IID on CIFAR-100 (RQ4)
+│
+├── Architecture/
+│   └── Project_Architecture_Interactive.html   # Interactive project architecture diagram
+│
 ├── results/
-│   ├── cifar10_rq1_attack_results.png
-│   ├── cifar10_rq2_rq3_results.png
 │   ├── cifar10_all_results.json
-│   ├── cifar100_rq1_results.png
-│   ├── cifar100_rq2_rq3_results.png
 │   └── cifar100_all_results.json
+│
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-## Methodology
+## How to Run
 
-### 1. Federated Learning Simulation
-- **Dataset:** CIFAR-10 (50,000 training / 10,000 test images, 10 classes) and CIFAR-100 (100 classes)
-- **Partitioning:** IID — data shuffled and split equally across clients
-- **Algorithm:** FedAvg — clients train locally and send weight updates to central server
-- **Configuration:** 5 clients, 10 communication rounds, 3 local epochs per round
+All notebooks are **fully self-contained** — no file uploads required. Everything runs on Google Colab with a free T4 GPU.
 
-### 2. Black-Box Membership Inference Attack
-- **Threat model:** Attacker has query access only — observes softmax output probabilities, no access to model weights or gradients
-- **Attack dataset:** 5,000 member samples (from training set) + 5,000 non-member samples (from test set)
-- **Features:** Full softmax output vector (10-dim for CIFAR-10, 100-dim for CIFAR-100)
-- **Attacker model:** Logistic regression binary classifier (member=1, non-member=0)
+### Setup
+1. Open [Google Colab](https://colab.research.google.com)
+2. Go to `Runtime → Change runtime type → T4 GPU`
+3. Open the notebook and click `Runtime → Run all`
 
-### 3. Experimental Conditions
-- **RQ2:** Varied number of clients — 2, 5, 10
-- **RQ3:** Varied model complexity — small CNN (2 conv blocks) vs large CNN (4 conv layers)
+### Notebook order and runtimes
 
-### 4. Evaluation Metrics
-- Attack Accuracy, Precision, Recall, AUC (random-chance baseline = 0.50)
+| Notebook | Purpose | Est. Runtime |
+|---|---|---|
+| `01_cifar10_experiments.ipynb` | Main CIFAR-10 pipeline (RQ1/2/3) | ~25–30 min |
+| `02_cifar100_experiments.ipynb` | CIFAR-100 pipeline + dataset comparison | ~20–25 min |
+| `03a_noniid_cifar10.ipynb` | Non-IID CIFAR-10 (RQ4) | ~15 min |
+| `03b_noniid_cifar100.ipynb` | Non-IID CIFAR-100 (RQ4) | ~20 min |
+
+> **Important:** Run `03a` and `03b` in **separate Colab sessions**. Running both together exhausts the free-tier RAM (~12 GB). Always Factory Reset the runtime before starting each one.
 
 ---
 
-## Results
+## Experimental Configuration
 
-### CIFAR-10 Results
-
-#### RQ1 — Base Attack (5 clients, small model)
-
-| Metric | Attacker Score | Random Baseline |
-|---|---|---|
-| Accuracy | 0.5033 | 0.50 |
-| Precision | 0.5051 | 0.50 |
-| Recall | 0.3313 | 0.50 |
-| **AUC** | **0.5128** | **0.50** |
-
-#### RQ2 — Number of Clients vs Attack AUC
-
-| Clients | Global Model Accuracy | Attack AUC |
-|---|---|---|
-| 2 | 0.7121 | 0.4833 |
-| 5 | 0.6768 | 0.4829 |
-| 10 | 0.6232 | 0.4816 |
-
-#### RQ3 — Model Complexity vs Privacy Leakage
-
-| Model | Global Accuracy | Attack AUC |
-|---|---|---|
-| Small CNN (~200K params) | 0.6792 | 0.4788 |
-| Large CNN (~1.2M params) | 0.7539 | 0.4784 |
+| Parameter | Value |
+|---|---|
+| Framework | TensorFlow 2.19.0 |
+| Hardware | Google Colab T4 GPU |
+| Random seed | 42 (fixed for full reproducibility) |
+| FL clients (base) | 5 |
+| FL rounds (base) | 10 |
+| Local epochs (base) | 3 |
+| Batch size | 64 |
+| Optimiser | Adam (lr = 0.001) |
+| Aggregation | FedAvg (weighted by dataset size) |
+| Attack samples | 5,000 members + 5,000 non-members (balanced) |
+| Attacker model | Logistic Regression (max_iter = 1000) |
+| IID partitioning | Random shuffle + equal split (NumPy array_split) |
+| Non-IID partitioning | Class-based cyclic assignment (5/10 or 50/100 classes per client) |
 
 ---
 
-### Key Findings
-
-- **RQ1:** The black-box MIA achieved an AUC of 0.51 — barely above random chance — indicating that FedAvg provides meaningful resistance against black-box membership inference attacks under IID conditions.
-- **RQ2:** Increasing the number of clients had negligible effect on attack success. AUC remained below 0.50 across all client configurations, suggesting that even a small federation provides privacy protection.
-- **RQ3:** Model complexity did not increase privacy leakage. The larger model achieved higher accuracy but similar AUC — FedAvg appears to mask memorisation signals regardless of model size.
-
----
-
-## Environment & Dependencies
-
-All experiments were run on **Google Colab** with a T4 GPU.
+## Environment
 
 | Package | Version |
 |---|---|
@@ -124,41 +151,26 @@ All experiments were run on **Google Colab** with a T4 GPU.
 
 ---
 
-## How to Run
+## Future Work
 
-### Option 1 — Google Colab (recommended)
-1. Open each notebook in Google Colab
-2. Set runtime to GPU: `Runtime → Change runtime type → T4 GPU`
-3. Run notebooks in order: `01` → `02` → `03`
-4. Notebooks 02 and 03 are **standalone** — they train their own models internally
+Three concrete directions for thesis extension:
 
-### Option 2 — Local machine
-```bash
-pip install tensorflow scikit-learn matplotlib numpy
-jupyter notebook
-```
+1. **Extreme Non-IID with Dirichlet distribution** — Replace class-based partitioning with Dirichlet (α = 0.1) for continuous heterogeneity control. Hypothesis: loss-based AUC increase would substantially exceed +0.024.
+2. **White-box attack comparison** — Implement gradient-based attacks (Nasr et al. 2019) to establish the ceiling on privacy leakage.
+3. **Differential privacy as a defence** — Implement DP-SGD across ε ∈ {1, 5, 10, 50} and plot the privacy-utility tradeoff curve (AUC vs global accuracy).
 
 ---
 
 ## References
 
-- Shokri, R., Stronati, M., Song, C., & Shmatikov, V. (2017). Membership inference attacks against machine learning models. *IEEE Symposium on Security and Privacy*, 3–18.
+- Bai, L., et al. (2024). Membership inference attacks and defenses in federated learning: A survey. *ACM Computing Surveys*. arXiv:2412.06157
+- Zhu, G., et al. (2024). FedMIA: An effective membership inference attack exploiting the "all for one" principle. *CVPR 2024*, 20643–20653
+- Dayal, S., et al. (2023). Comparative analysis of membership inference attacks in federated and centralised learning. *Information*, 14(11), 620
+- McMahan, B., et al. (2017). Communication-efficient learning of deep networks from decentralized data. *AISTATS*, 1273–1282
+- Nasr, M., et al. (2019). Comprehensive privacy analysis of deep learning. *IEEE S&P*, 739–753
 
-- McMahan, B., Moore, E., Ramage, D., Hampson, S., & Arcas, B. A. (2017). Communication-efficient learning of deep networks from decentralized data. *AISTATS*, 1273–1282.
-
-- Nasr, M., Shokri, R., & Houmansadr, A. (2019). Comprehensive privacy analysis of deep learning. *IEEE Symposium on Security and Privacy*, 739–753.
-
----
-
-## Future Work
-
-This study establishes a baseline for black-box MIA in IID federated learning settings. Planned extensions include:
-
-- **Non-IID data partitioning** — evaluating attack success under realistic heterogeneous data distributions
-- **White-box attacks** — comparing black-box vs white-box attack success rates
-- **Defense mechanisms** — implementing differential privacy and measuring the privacy-utility tradeoff
-- **Additional datasets** — extending experiments to medical imaging datasets
+Full reference list in the LaTeX report.
 
 ---
 
-*This project is the foundation for an ongoing thesis on privacy attacks and defenses in federated learning systems.*
+*This project is the foundation for an ongoing thesis on privacy attacks and defences in federated learning systems.*
