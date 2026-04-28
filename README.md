@@ -151,15 +151,6 @@ All notebooks are fully self-contained — no file uploads required. Everything 
 
 ---
 
-## Future Work
-
-Three concrete directions for thesis extension:
-
-1. **Extreme Non-IID with Dirichlet distribution** — Replace class-based partitioning with Dirichlet (α = 0.1) for continuous heterogeneity control. Hypothesis: loss-based AUC increase would substantially exceed +0.024.
-2. **White-box attack comparison** — Implement gradient-based attacks (Nasr et al. 2019) to establish the ceiling on privacy leakage.
-3. **Differential privacy as a defence** — Implement DP-SGD across ε ∈ {1, 5, 10, 50} and plot the privacy-utility tradeoff curve (AUC vs global accuracy).
-
----
 
 ## References
 
