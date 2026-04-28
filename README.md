@@ -1,7 +1,5 @@
 # Evaluating Black-Box Membership Inference Attacks in Federated Learning
 
-
-
 ---
 
 ## Overview
@@ -64,34 +62,37 @@ A Membership Inference Attack tries to determine whether a specific data sample 
 
 ## Main Findings
 
-- **FedAvg is the dominant privacy mechanism.** Weight averaging dilutes individual memorisation signals regardless of client count or model size — explaining why RQ2 and RQ3 had no consistent effect.
-- **The vulnerability channel is prediction loss, not confidence patterns.** The logistic regression classifier (AUC ≈ 0.50) failed while the untrained loss-based heuristic partially succeeded (AUC 0.577–0.618). The membership signal is a single scalar, not distributed across the confidence vector.
-- **Dataset difficulty amplifies leakage.** Harder tasks (lower global accuracy) produce larger loss gaps between members and non-members — CIFAR-100 consistently showed higher attack AUC than CIFAR-10.
-- **Non-IID heterogeneity increases leakage when specialisation is strong.** Moderate Non-IID (5/10 classes per client on CIFAR-10) raised loss AUC by +0.024. Mild Non-IID (50/100 classes on CIFAR-100) had negligible effect.
+- **FedAvg is the dominant privacy mechanism.** Weight averaging reduces individual memorisation signals regardless of client count or model size — explaining why RQ2 and RQ3 show no consistent effect.
+- **The key signal is prediction loss, not confidence patterns.** Logistic regression (AUC ≈ 0.50) fails, while the loss-based method succeeds (AUC 0.577–0.618).
+- **Dataset difficulty amplifies leakage.** Harder tasks (lower accuracy) produce larger loss differences — CIFAR-100 consistently shows higher attack AUC than CIFAR-10.
+- **Non-IID increases leakage when client specialisation is strong.** Moderate Non-IID increases attack success, while mild Non-IID has minimal effect.
 
 ---
 
 ## Repository Structure
-
-```
-Data-Science-Lab-/
+black-box-mia-federated-learning/
 │
-├── Notebooks/
-│   ├── 01_cifar10_experiments.ipynb      # CIFAR-10: FL training + MIA + RQ1/2/3
-│   ├── 02_cifar100_experiments.ipynb     # CIFAR-100: FL training + MIA + dataset comparison
-│   ├── 03a_noniid_cifar10.ipynb          # Non-IID vs IID on CIFAR-10 (RQ4)
-│   └── 03b_noniid_cifar100.ipynb         # Non-IID vs IID on CIFAR-100 (RQ4)
+├── architecture/
+│ └── architecture.png
 │
-├── Architecture/
-│   └── Project_Architecture_Interactive.html   # Interactive project architecture diagram
+├── notebooks/
+│ ├── 01_cifar10_experiments.ipynb # CIFAR-10: FL training + MIA + RQ1/2/3
+│ ├── 02_cifar100_experiments.ipynb # CIFAR-100: FL training + MIA + dataset comparison
+│ ├── 03a_noniid_cifar10.ipynb # Non-IID vs IID on CIFAR-10 (RQ4)
+│ └── 03b_noniid_cifar100.ipynb # Non-IID vs IID on CIFAR-100 (RQ4)
 │
 ├── results/
-│   ├── cifar10_all_results.json
-│   └── cifar100_all_results.json
+│ ├── cifar100_all_results.json
+│ ├── cifar100_noniid_results.json
+│ ├── cifar10_all_results.json
+│ └── cifar10_noniid_results.json
+│
+├── report/
+│ └── final_report.pdf
 │
 ├── .gitignore
 └── README.md
-```
+
 
 ---
 
