@@ -1,8 +1,6 @@
 # Evaluating Black-Box Membership Inference Attacks in Federated Learning
 
-> **DS Lab 2** — ELTE Faculty of Informatics  
-> **Author:** Abdihakim Yussuf Abdi  
-> **Date:** March 2026
+This project investigates privacy risks in federated learning through black-box membership inference attacks.
 
 ---
 
