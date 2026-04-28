@@ -1,6 +1,6 @@
 # Evaluating Black-Box Membership Inference Attacks in Federated Learning
 
-This project investigates privacy risks in federated learning through black-box membership inference attacks.
+
 
 ---
 
