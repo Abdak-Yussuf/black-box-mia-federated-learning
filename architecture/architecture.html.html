@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture — Black-Box MIA in Federated Learning</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #F7F8FA;
+    color: #1a1a2e;
+    padding: 36px 24px 48px;
+    min-width: 900px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    color: #0D1B2A;
+    margin-bottom: 32px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #0D9488;
+  }
+
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ── Step row ── */
+  .step-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .step-label {
+    width: 130px;
+    min-width: 130px;
+    background: #0D1B2A;
+    color: #5DCAA5;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 12px 8px;
+    border-bottom: 1px solid #1E293B;
+  }
+
+  .step-content {
+    flex: 1;
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    background: white;
+    border-bottom: 1px solid #E2E8F0;
+    border-left: 3px solid #0D9488;
+  }
+
+  /* ── Boxes inside steps ── */
+  .box {
+    flex: 1;
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+
+  .box.teal   { border-left: 4px solid #0D9488; }
+  .box.navy   { border-left: 4px solid #0D1B2A; }
+  .box.gold   { border-left: 4px solid #F59E0B; }
+  .box.green  { border-left: 4px solid #22C55E; }
+  .box.red    { border-left: 4px solid #EF4444; }
+  .box.center {
+    flex: 1;
+    text-align: center;
+    border-left: 4px solid #6366F1;
+  }
+
+  .box-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #0D1B2A;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #E2E8F0;
+  }
+
+  .box-title.teal  { color: #0D9488; }
+  .box-title.gold  { color: #B45309; }
+  .box-title.green { color: #16A34A; }
+  .box-title.red   { color: #DC2626; }
+
+  .box p, .box ul {
+    font-size: 11.5px;
+    color: #334155;
+    line-height: 1.7;
+  }
+  .box ul { padding-left: 14px; }
+  .box ul li { margin-bottom: 2px; }
+
+  .metric {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: bold;
+    color: #0D9488;
+    background: #E6F7F6;
+    border-radius: 3px;
+    padding: 1px 6px;
+    margin-top: 4px;
+  }
+  .metric.gold  { color: #92400E; background: #FEF3C7; }
+  .metric.green { color: #15803D; background: #DCFCE7; }
+  .metric.red   { color: #B91C1C; background: #FEE2E2; }
+
+  /* ── Arrow connector ── */
+  .arrow-row {
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 130px;
+  }
+  .arrow {
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    color: #0D9488;
+    padding: 4px 0;
+    letter-spacing: 8px;
+  }
+
+  /* ── Column headers ── */
+  .col-headers {
+    display: flex;
+    padding: 0 0 0 130px;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .col-header {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: white;
+    background: #0D1B2A;
+    padding: 5px 8px;
+    border-radius: 4px 4px 0 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Black-Box Membership Inference Attacks in Federated Learning</h1>
+
+<div class="pipeline">
+
+  <!-- Column headers -->
+  <div class="col-headers">
+    <div class="col-header">CIFAR-10</div>
+    <div class="col-header">CIFAR-100</div>
+  </div>
+
+  <!-- STEP 1: DATA -->
+  <div class="step-row">
+    <div class="step-label">Step 1<br>Data</div>
+    <div class="step-content">
+      <div class="box teal">
+        <div class="box-title teal">CIFAR-10</div>
+        <p>50,000 train · 10,000 test · 10 classes</p>
+        <p>IID + Non-IID partitioning</p>
+        <p>5,000 images per class</p>
+      </div>
+      <div class="box teal">
+        <div class="box-title teal">CIFAR-100</div>
+        <p>50,000 train · 10,000 test · 100 classes</p>
+        <p>IID + Non-IID partitioning</p>
+        <p>500 images per class</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row"><div class="arrow">↓</div></div>
+
+  <!-- STEP 2: FEDERATED LEARNING -->
+  <div class="step-row">
+    <div class="step-label">Step 2<br>Federated<br>Learning</div>
+    <div class="step-content">
+      <div class="box navy">
+        <div class="box-title">FedAvg Training — CIFAR-10</div>
+        <ul>
+          <li>10 rounds · 3 local epochs</li>
+          <li>Base: 5 clients (varied in RQ2)</li>
+          <li>Notebooks 01 &amp; 03a</li>
+        </ul>
+        <div style="margin-top:8px">
+          <span class="metric green">IID acc: 71.60%</span>
+          <span class="metric gold">Non-IID acc: 49.31%</span>
+        </div>
+      </div>
+      <div class="box navy">
+        <div class="box-title">FedAvg Training — CIFAR-100</div>
+        <ul>
+          <li>10 rounds · 3 local epochs</li>
+          <li>Base: 5 clients (varied in RQ2)</li>
+          <li>Notebooks 02 &amp; 03b</li>
+        </ul>
+        <div style="margin-top:8px">
+          <span class="metric green">IID acc: 37.59%</span>
+          <span class="metric gold">Non-IID acc: 24.96%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row"><div class="arrow">↓</div></div>
+
+  <!-- STEP 3: BLACK-BOX QUERY -->
+  <div class="step-row">
+    <div class="step-label">Step 3<br>Black-Box<br>Query</div>
+    <div class="step-content">
+      <div class="box center">
+        <div class="box-title" style="color:#6366F1">Attacker Dataset Construction</div>
+        <p>5,000 member samples (from training set, label = 1)</p>
+        <p>5,000 non-member samples (from test set, label = 0)</p>
+        <p style="margin-top:6px">Features: softmax output vector (C-dimensional) — no weights, no gradients</p>
+        <div style="margin-top:8px">
+          <span class="metric" style="color:#6366F1;background:#EEF2FF">Balanced dataset → random baseline AUC = 0.50</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row"><div class="arrow">↓</div></div>
+
+  <!-- STEP 4: ATTACK METHODS -->
+  <div class="step-row">
+    <div class="step-label">Step 4<br>Attack<br>Methods</div>
+    <div class="step-content">
+      <div class="box">
+        <div class="box-title">Attack Results — CIFAR-10</div>
+        <ul>
+          <li>Random baseline <span class="metric">AUC 0.497</span></li>
+          <li>Threshold attack <span class="metric">AUC 0.536</span></li>
+          <li>Loss-based (best) <span class="metric green">AUC 0.577</span></li>
+          <li>Logistic Regression <span class="metric red">AUC 0.497</span></li>
+        </ul>
+      </div>
+      <div class="box">
+        <div class="box-title">Attack Results — CIFAR-100</div>
+        <ul>
+          <li>Random baseline <span class="metric">AUC 0.497</span></li>
+          <li>Threshold attack <span class="metric">AUC 0.541</span></li>
+          <li>Loss-based (best) <span class="metric green">AUC 0.618</span></li>
+          <li>Logistic Regression <span class="metric red">AUC 0.516</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row"><div class="arrow">↓</div></div>
+
+  <!-- RQ1 RESULT -->
+  <div class="step-row">
+    <div class="step-label">RQ1<br>Result</div>
+    <div class="step-content">
+      <div class="box green">
+        <div class="box-title green">CIFAR-10 Answer</div>
+        <p>Classifier fails — LR AUC ≈ 0.50</p>
+        <p>Loss signal partially leaks — <strong>AUC 0.577</strong></p>
+      </div>
+      <div class="box green">
+        <div class="box-title green">CIFAR-100 Answer</div>
+        <p>Classifier fails — LR AUC ≈ 0.50</p>
+        <p>Loss signal leaks more — <strong>AUC 0.618</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row"><div class="arrow">↓</div></div>
+
+  <!-- RQ2 / RQ3 / RQ4 -->
+  <div class="step-row">
+    <div class="step-label">RQ2 · RQ3<br>RQ4</div>
+    <div class="step-content">
+      <div class="box">
+        <div class="box-title">Follow-up Results — CIFAR-10</div>
+        <ul>
+          <li><strong>RQ2</strong> — Clients (2, 5, 10): No consistent effect</li>
+          <li><strong>RQ3</strong> — Model (Small vs Large): No consistent effect</li>
+          <li><strong>RQ4</strong> — Non-IID (5/10 classes):
+            <span class="metric green">+0.024 AUC — meaningful increase</span>
+          </li>
+        </ul>
+      </div>
+      <div class="box">
+        <div class="box-title">Follow-up Results — CIFAR-100</div>
+        <ul>
+          <li><strong>RQ2</strong> — Clients (2, 5, 10): No consistent effect</li>
+          <li><strong>RQ3</strong> — Model (Small vs Large): No consistent effect</li>
+          <li><strong>RQ4</strong> — Non-IID (50/100 classes):
+            <span class="metric gold">+0.003 AUC — negligible</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end pipeline -->
+
+</body>
+</html>
