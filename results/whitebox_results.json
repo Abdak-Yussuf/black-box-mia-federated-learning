@@ -1,0 +1,17 @@
+{
+  "target_global_acc_iid": 0.7103999853134155,
+  "target_global_acc_noniid": 0.5045999884605408,
+  "blackbox_lr_auc_iid": 0.4704527777777778,
+  "blackbox_lr_recall_iid": 0.38166666666666665,
+  "shadow_auc_iid": 0.539,
+  "shadow_auc_noniid": 0.564,
+  "loss_auc_iid": 0.57626725,
+  "loss_auc_noniid": 0.5919252500000001,
+  "whitebox_auc_iid": 0.6145027777777777,
+  "whitebox_recall_iid": 0.8516666666666667,
+  "whitebox_auc_noniid": 0.6126027777777777,
+  "whitebox_recall_noniid": 0.6216666666666667,
+  "whitebox_gain_over_loss_iid": 0.03823552777777772,
+  "whitebox_gain_over_shadow_iid": 0.0755027777777777,
+  "whitebox_noniid_delta": -0.0019000000000000128
+}
