@@ -38,6 +38,13 @@ Papers/
 *.pt
 *.ckpt
 *.joblib
+*.weights
+*.pb
+saved_model/
+
+# ── Colab output directory ────────────────────────────────────────────────────
+outputs/
+content/
 
 # ── Packaging / Metadata ──────────────────────────────────────────────────────
 *.egg-info/
