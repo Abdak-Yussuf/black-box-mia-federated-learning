@@ -9,6 +9,7 @@
 \setlength{\parskip}{5pt}
 \setlength{\parindent}{0pt}
 \usepackage{titlesec}
+\usepackage{colortbl}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{xcolor}
@@ -580,8 +581,8 @@ of how dataset classification difficulty affects privacy leakage, holding all
 other experimental variables constant.
 
 Both datasets were sourced from the TensorFlow/Keras API, which downloads and
-caches them automatically without requiring manual uploads. This ensures full
-reproducibility across different compute environments.
+are standard publicly available benchmarks used widely in the machine learning
+privacy literature, ensuring full reproducibility.
 
 \section{Preprocessing Pipeline}
 
@@ -783,7 +784,7 @@ dataset preparation and partitioning, federated learning simulation, baseline
 black-box attack evaluation, differential privacy defence, shadow model attack,
 white-box gradient attack, and comparative evaluation across all methods. All
 experiments were implemented in Python using TensorFlow 2.19.0 and executed on
-Google Colab with a T4 GPU.
+a GPU-accelerated compute environment.
 
 \section{Attacker Threat Model}
 
@@ -941,7 +942,7 @@ client $k$ at round $t$.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.82\textwidth]{cifar10_convergence.png}
+  \includegraphics[width=\textwidth]{cifar10_convergence.png}
   \caption{FedAvg convergence on CIFAR-10 with 5 clients over 10 communication
   rounds (Notebook~01). Global test accuracy rises from 48.0\% at round~1 to
   72.0\% at round~10, demonstrating stable and consistent convergence under
@@ -957,25 +958,34 @@ used throughout all experiments.
 \centering
 \begin{tikzpicture}[
   server/.style={rectangle, rounded corners=6pt, draw=navycolor, fill=navycolor!15,
-                 minimum width=3.2cm, minimum height=1.2cm, align=center, font=\small\bfseries},
+                 minimum width=4.0cm, minimum height=1.2cm, align=center,
+                 font=\small\bfseries},
   client/.style={rectangle, rounded corners=4pt, draw=tealcolor, fill=tealcolor!12,
-                 minimum width=2.0cm, minimum height=0.9cm, align=center, font=\small},
-  arrow/.style={-Stealth, thick},
-  label/.style={font=\scriptsize, text=gray}
+                 minimum width=1.8cm, minimum height=1.0cm, align=center, font=\small},
+  down/.style={-Stealth, thick, color=navycolor},
+  up/.style={-Stealth, thick, color=tealcolor, dashed}
 ]
 
-\node[server] (server) at (5, 4.5) {Aggregation\\Server\\(FedAvg)};
+% Server at top centre
+\node[server] (srv) at (5.5, 4.0)
+  {Aggregation Server\\(FedAvg)\\[2pt]
+   \scriptsize$w_t \leftarrow \sum_k \frac{n_k}{n}\,w_k^t$};
 
-\foreach \i/\x/\name in {1/0.5/Client 1, 2/2.5/Client 2, 3/5.0/Client 3, 4/7.5/Client 4, 5/9.5/Client 5} {
-  \node[client] (c\i) at (\x, 1.5) {\name\\(local data)};
-  \draw[arrow, color=navycolor] (server) -- (c\i)
-    node[midway, sloped, label, above] {broadcast $w_{t-1}$};
-  \draw[arrow, color=tealcolor, dashed] (c\i) -- (server)
-    node[midway, sloped, label, below] {return $w_k^t$};
+% Five clients in a row
+\foreach \i/\x/\lbl in {1/0/Client 1, 2/2.2/Client 2, 3/4.4/Client 3,
+                          4/6.6/Client 4, 5/8.8/Client 5}{
+  \node[client] (c\i) at (\x+0.9, 1.5) {\lbl\\(local data)};
+  % Broadcast arrow (server -> client), offset left
+  \draw[down] ([xshift=-3pt]srv.south) -- ([xshift=-3pt]c\i.north);
+  % Return arrow (client -> server), offset right
+  \draw[up]   ([xshift= 3pt]c\i.north) -- ([xshift= 3pt]srv.south);
 }
 
-\node[font=\scriptsize, text=navycolor, align=center] at (5, 3.4)
-  {$w_t \leftarrow \sum_{k} \frac{n_k}{n} w_k^t$};
+% Single legend outside the arrows
+\node[font=\scriptsize, text=navycolor] at (12.0, 3.2)
+  {\textcolor{navycolor}{$\downarrow$} broadcast $w_{t-1}$};
+\node[font=\scriptsize, text=tealcolor] at (12.0, 2.7)
+  {\textcolor{tealcolor}{$\uparrow$} return $w_k^t$};
 
 \end{tikzpicture}
 \caption{FedAvg federated learning architecture used in all experiments. The
@@ -1042,9 +1052,10 @@ added before the weight update:
   + \mathcal{N}(0, \sigma^2 C^2 \mathbf{I}) \right)
 \end{equation}
 
-Three configurations were evaluated with clipping bound $C = 1.0$: no DP
-(baseline), moderate privacy ($\varepsilon = 10$, $\sigma = 1.1$), and strong
-privacy ($\varepsilon = 1$, $\sigma = 3.0$). All DP experiments used CIFAR-10,
+Four configurations were evaluated with clipping bound $C = 1.0$: no DP
+(baseline), weak privacy ($\varepsilon = 50$, $\sigma = 0.5$), moderate privacy
+($\varepsilon = 10$, $\sigma = 1.1$), and strong privacy ($\varepsilon = 1$,
+$\sigma = 3.0$). All DP experiments used CIFAR-10,
 IID partitioning, 5 clients, 5 rounds, and 2 local epochs with SGD as the base
 optimiser.
 
@@ -1056,31 +1067,32 @@ in Figure~\ref{fig:shadow_pipeline}.
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[
-  step/.style={rectangle, rounded corners=5pt, draw=tealcolor, fill=tealcolor!10,
-               text width=2.2cm, minimum height=1.4cm, align=center, font=\scriptsize},
-  arrow/.style={-Stealth, thick, color=navycolor},
-  note/.style={font=\scriptsize\itshape, text=gray, align=center}
-]
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}ccccc@{}}
+\hline
+\cellcolor{tealcolor!15}\textbf{Step 1} &
+\cellcolor{tealcolor!15}\textbf{Step 2} &
+\cellcolor{tealcolor!15}\textbf{Step 3} &
+\cellcolor{tealcolor!15}\textbf{Step 4} &
+\cellcolor{tealcolor!15}\textbf{Step 5} \\[4pt]
+Shadow dataset & Train shadow & Query shadow & Train attack & Apply to \\
+(CIFAR-100) & FL model & model & classifier & target model \\
+& (FedAvg) & (known labels) & (LR, 6 feat.) & (CIFAR-10) \\[4pt]
+\scriptsize\textit{Similar domain,} &
+\scriptsize\textit{Attacker} &
+\scriptsize\textit{Members \&} &
+\scriptsize\textit{Architecture-} &
+\scriptsize\textit{No real} \\
+\scriptsize\textit{not same data} &
+\scriptsize\textit{controls training} &
+\scriptsize\textit{non-members known} &
+\scriptsize\textit{agnostic features} &
+\scriptsize\textit{CIFAR-10 data used} \\
+\hline
+\end{tabular}
+\vspace{4pt}
 
-\node[step] (s1) at (0,0) {\textbf{Step 1}\\Shadow\\dataset\\(CIFAR-100)};
-\node[step] (s2) at (2.8,0) {\textbf{Step 2}\\Train shadow\\FL model\\(FedAvg)};
-\node[step] (s3) at (5.6,0) {\textbf{Step 3}\\Query shadow\\model\\(known labels)};
-\node[step] (s4) at (8.4,0) {\textbf{Step 4}\\Train attack\\classifier\\(LR)};
-\node[step] (s5) at (11.2,0) {\textbf{Step 5}\\Apply to\\target model\\(CIFAR-10)};
-
-\draw[arrow] (s1) -- (s2);
-\draw[arrow] (s2) -- (s3);
-\draw[arrow] (s3) -- (s4);
-\draw[arrow] (s4) -- (s5);
-
-\node[note] at (0,-1.3)    {similar domain\\not the same};
-\node[note] at (2.8,-1.3)  {attacker controls\\shadow FL};
-\node[note] at (5.6,-1.3)  {shadow members\\\& non-members};
-\node[note] at (8.4,-1.3)  {6-dim feature\\extraction};
-\node[note] at (11.2,-1.3) {no real\\training data used};
-
-\end{tikzpicture}
+\noindent\hspace{0.5cm}$\longrightarrow$\hspace{1.7cm}$\longrightarrow$\hspace{1.7cm}$\longrightarrow$\hspace{1.7cm}$\longrightarrow$
 \caption{Shadow model attack pipeline (RQ6). The attacker uses CIFAR-100 as
 shadow data --- same 32$\times$32 RGB format, completely different 100 classes.
 A shadow federated model is trained on CIFAR-100 using FedAvg. Because the
@@ -1210,11 +1222,11 @@ practically meaningful privacy violation.
 
 \section{Experimental Setup}
 
-All experiments were conducted on Google Colab using a T4 GPU with TensorFlow
+All experiments were conducted on a GPU-accelerated environment with TensorFlow
 2.19.0 and a fixed random seed of 42. The seven notebooks are self-contained and
 fully reproducible. The attacker dataset for RQ1--RQ4 consisted of 5,000 member
 and 5,000 non-member samples; for RQ2 and RQ3 experiment loops, reduced samples
-of 1,000 per group were used to manage RAM constraints on the free Colab tier.
+of 1,000 per group were used to manage computational memory constraints.
 The shadow model attack (RQ6) used 5,000 shadow members and non-members from
 CIFAR-100 and evaluated on 5,000 target members and non-members from CIFAR-10.
 The white-box attack (RQ7) used 2,000 members and non-members due to the
@@ -1271,34 +1283,30 @@ resists classifier-based attacks but not loss-based attacks.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[t]{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{cifar10_rq1_results.png}
-    \caption{CIFAR-10: LR attacker AUC = 0.4973, Recall = 0.3580. Both sit
-    below random chance, confirming the logistic regression classifier finds
-    no useful structure in the averaged softmax confidence vectors.}
-    \label{fig:cifar10_rq1_bar}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[t]{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{cifar100_rq1_results.png}
-    \caption{CIFAR-100: LR attacker AUC = 0.5071, Recall = 0.4667. Slightly
-    above random chance, reflecting marginally richer patterns from the harder
-    100-class task. Loss-based AUC reaches 0.618.}
-    \label{fig:cifar100_rq1_bar}
-  \end{subfigure}
-  \caption{RQ1 black-box MIA results for the logistic regression attacker on
-  CIFAR-10 (left) and CIFAR-100 (right). The dashed line marks the 0.50 random
-  chance baseline. Both datasets show near-random AUC for the LR classifier,
-  while the loss-based attack achieves 0.577 and 0.618 respectively
-  (Table~\ref{tab:baseline}).}
-  \label{fig:rq1_bars}
+  \includegraphics[width=\textwidth]{cifar10_rq1_results.png}
+  \caption{RQ1 black-box MIA results --- CIFAR-10 (IID, 5 clients, 10 rounds).
+  The lollipop chart shows each attack method's AUC as distance from the 0.50
+  random chance baseline. The LR attacker sits at 0.492 --- below random chance ---
+  while the loss-based attack reaches 0.534, confirming that FedAvg averaging
+  destroys the confidence vector patterns a classifier needs but cannot suppress
+  the scalar loss signal.}
+  \label{fig:cifar10_rq1_bar}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.75\textwidth]{cifar10_rq1_roc_comparison.png}
+  \includegraphics[width=\textwidth]{cifar100_rq1_results.png}
+  \caption{RQ1 black-box MIA results --- CIFAR-100 (IID, 5 clients, 10 rounds).
+  The LR attacker achieves AUC 0.510, marginally above random chance, while the
+  loss-based attack reaches 0.618 --- the highest IID result in the study. The
+  larger gap reflects CIFAR-100's harder classification task producing a wider
+  member/non-member loss separation.}
+  \label{fig:cifar100_rq1_bar}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{cifar10_rq1_roc_comparison.png}
   \caption{ROC curves for CIFAR-10 (RQ1) comparing the logistic regression
   attacker (LR, AUC = 0.497, solid blue) and the loss-based attack (AUC = 0.538,
   dashed green) against the random chance diagonal. The LR curve hugs the
@@ -1348,27 +1356,23 @@ equivalent privacy regardless of federation size within the evaluated range.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[t]{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{cifar10_rq2_clients.png}
-    \caption{CIFAR-10: Attack AUC fluctuates between 0.499--0.525 with no
-    monotonic trend across 2, 5, and 10 clients. All values remain near the
-    0.50 random chance line.}
-    \label{fig:cifar10_rq2}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[t]{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{cifar100_rq2_clients.png}
-    \caption{CIFAR-100: Attack AUC ranges 0.473--0.482, all below random
-    chance. The slight upward trend is negligible and not practically
-    meaningful.}
-    \label{fig:cifar100_rq2}
-  \end{subfigure}
+  \includegraphics[width=\textwidth]{cifar10_rq2_clients.png}
   \caption{RQ2 results --- effect of number of federated clients on black-box
-  MIA success for CIFAR-10 (left) and CIFAR-100 (right). Neither dataset shows
-  a meaningful relationship between client count and attack AUC.}
-  \label{fig:rq2_clients}
+  MIA success for CIFAR-10 (IID). The connected dot plot shows AUC across 2, 5,
+  and 10 clients with no monotonic trend. All values remain near the 0.50 random
+  chance baseline, confirming that client count does not affect FedAvg's
+  privacy properties under equal dataset sizes.}
+  \label{fig:cifar10_rq2}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{cifar100_rq2_clients.png}
+  \caption{RQ2 results --- effect of number of federated clients on black-box
+  MIA success for CIFAR-100 (IID). AUC values remain below random chance across
+  all client counts, with no consistent trend. The result mirrors CIFAR-10,
+  confirming the finding is dataset-independent.}
+  \label{fig:cifar100_rq2}
 \end{figure}
 
 \section{RQ3 --- Effect of Model Complexity}
@@ -1407,28 +1411,23 @@ individual model capacity.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[t]{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{cifar10_rq3_complexity.png}
-    \caption{CIFAR-10: Small CNN (AUC = 0.495) vs.\ Large CNN (AUC = 0.512).
-    The 0.017 difference is not practically meaningful. Recall is lower for
-    the Large CNN (0.360 vs 0.457), suggesting larger models produce more
-    uniform confidence outputs after FedAvg averaging.}
-    \label{fig:cifar10_rq3}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[t]{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{cifar100_rq3_complexity.png}
-    \caption{CIFAR-100: Small CNN (AUC = 0.485) vs.\ Large CNN (AUC = 0.486).
-    Essentially zero difference, confirming model complexity has no predictive
-    value for black-box MIA success under FedAvg.}
-    \label{fig:cifar100_rq3}
-  \end{subfigure}
-  \caption{RQ3 results --- model complexity vs.\ black-box MIA success for
-  CIFAR-10 (left) and CIFAR-100 (right). FedAvg weight averaging is the dominant
-  privacy mechanism regardless of architecture capacity.}
-  \label{fig:rq3_complexity}
+  \includegraphics[width=\textwidth]{cifar10_rq3_complexity.png}
+  \caption{RQ3 results --- model complexity vs.\ attack success for CIFAR-10 (IID).
+  The grouped bar chart shows Attack AUC and Member Recall for the Small CNN
+  (\textasciitilde{}200K params) and Large CNN (\textasciitilde{}1.2M params).
+  The AUC difference of 0.001 is negligible, confirming that model capacity does
+  not predict black-box MIA success under FedAvg averaging.}
+  \label{fig:cifar10_rq3}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{cifar100_rq3_complexity.png}
+  \caption{RQ3 results --- model complexity vs.\ attack success for CIFAR-100 (IID).
+  Both architectures produce near-identical AUC values. The pattern reverses
+  relative to CIFAR-10 (small model slightly higher), confirming the inconsistency
+  of model complexity as a predictor of privacy leakage under FedAvg.}
+  \label{fig:cifar100_rq3}
 \end{figure}
 
 \section{Dataset Complexity Comparison}
@@ -1503,7 +1502,7 @@ underlying phenomenon of client specialisation.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{cifar10_noniid_convergence.png}
+  \includegraphics[width=\textwidth]{cifar10_noniid_convergence.png}
   \caption{FedAvg convergence curves for CIFAR-10 under IID (blue) and Non-IID
   (orange) partitioning over 10 rounds. The IID model converges smoothly to
   71.60\%, while Non-IID reaches only 49.31\% due to conflicting gradient
@@ -1551,7 +1550,7 @@ actual degree of heterogeneity, not simply categorised as IID or Non-IID.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{cifar100_noniid_convergence.png}
+  \includegraphics[width=\textwidth]{cifar100_noniid_convergence.png}
   \caption{FedAvg convergence for CIFAR-100 under IID and Non-IID over 10 rounds.
   Both curves show slower convergence than CIFAR-10. Non-IID reaches 24.96\% vs
   37.59\% for IID, but the smaller accuracy gap compared to CIFAR-10 reflects
@@ -1599,7 +1598,8 @@ Table~\ref{tab:dp_results} presents the DP-SGD evaluation results.
     \toprule
     \textbf{Configuration} & \textbf{$\varepsilon$} & \textbf{Global Acc.} & \textbf{Loss AUC} & \textbf{LR AUC} \\
     \midrule
-    No DP (baseline)    & $\infty$ & 0.5300 & 0.5110 & 0.4750 \\
+    No DP (baseline)    & $\infty$ & 0.6687 & 0.5118 & 0.5098 \\
+    Weak DP             & 50       & 0.2162 & 0.5044 & 0.4360 \\
     Moderate DP         & 10       & 0.1210 & 0.4650 & 0.4620 \\
     Strong DP           & 1        & 0.1700 & 0.4980 & 0.5030 \\
     \midrule
@@ -1608,15 +1608,17 @@ Table~\ref{tab:dp_results} presents the DP-SGD evaluation results.
   \end{tabular}
 \end{table}
 
-The no-DP baseline achieves 53.0\% accuracy using a shorter 5-round SGD schedule.
-At $\varepsilon = 10$ (moderate privacy), both attacks are suppressed below random
-chance --- loss-based AUC drops to 0.465 and LR AUC to 0.462 --- but global
-accuracy collapses to 12.1\%, rendering the model practically useless. At
-$\varepsilon = 1$ (strong privacy), accuracy partially recovers to 17.0\% while
-both attack AUCs remain near random chance (0.498 and 0.503). The non-monotone
-relationship between $\varepsilon$ and accuracy ($\varepsilon = 1$ is worse for
-privacy but better for accuracy than $\varepsilon = 10$) indicates that the noise
-multiplier values interact with the SGD optimiser in a complex, non-linear way.
+The no-DP baseline achieves 66.9\% accuracy. At $\varepsilon = 50$ (weak
+privacy), the loss-based AUC drops to 0.504 --- near random chance --- while
+global accuracy falls to 21.6\%, representing a meaningful improvement over
+more aggressive DP settings. At $\varepsilon = 10$ (moderate privacy), both
+attacks are suppressed below random chance --- loss-based AUC drops to 0.465
+and LR AUC to 0.462 --- but global accuracy collapses to 12.1\%, rendering the
+model practically useless. At $\varepsilon = 1$ (strong privacy), accuracy
+partially recovers to 17.0\% while both attack AUCs remain near random chance
+(0.498 and 0.503). The non-monotone relationship between $\varepsilon$ and
+accuracy indicates that the noise multiplier values interact with the SGD
+optimiser in a complex, non-linear way.
 
 \textbf{Key finding (RQ5):} DP-SGD directly suppresses the loss-based membership
 signal by reducing the loss gap between members and non-members. However, the
@@ -1629,37 +1631,45 @@ point.
   \includegraphics[width=\textwidth]{dp_privacy_utility_tradeoff.png}
   \caption{Privacy-utility tradeoff bar chart for DP-SGD on CIFAR-10 (RQ5).
   Each group shows Global Accuracy (dark), Loss-Based AUC (teal), and LR AUC
-  (blue) for No~DP, $\varepsilon=10$, and $\varepsilon=1$. Both attack AUCs
-  fall to or below random chance under DP, while accuracy drops severely from
-  53.0\% to 12.1\% ($\varepsilon=10$) and 17.0\% ($\varepsilon=1$).}
+  (blue) for No~DP, $\varepsilon=50$, $\varepsilon=10$, and $\varepsilon=1$.
+  Both attack AUCs fall to or below random chance under all DP configurations,
+  while accuracy drops from 66.9\% (No~DP) to 21.6\% ($\varepsilon=50$),
+  12.1\% ($\varepsilon=10$), and 17.0\% ($\varepsilon=1$).}
   \label{fig:dp_tradeoff_bar}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[t]{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{dp_roc_curves.png}
-    \caption{ROC curves under three DP configurations. No~DP (black, AUC =
-    0.511) sits highest. $\varepsilon=10$ (orange, AUC = 0.465) dips below
-    the diagonal, indicating the noise disrupts the membership signal. $\varepsilon=1$
-    (red, AUC = 0.498) returns near-diagonal.}
-    \label{fig:dp_roc}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[t]{0.48\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{dp_tradeoff_curve.png}
-    \caption{Dual-axis tradeoff curve showing accuracy (black, left) and
-    loss-based AUC (teal dashed, right) across epsilon. Both attack suppression
-    and accuracy are non-monotone in $\varepsilon$, reflecting the complex
-    interaction of noise with the SGD optimiser.}
-    \label{fig:dp_tradeoff_line}
-  \end{subfigure}
-  \caption{DP-SGD defence evaluation (RQ5). Left: ROC curves showing attack
-  suppression across epsilon. Right: dual-axis tradeoff curve directly
-  illustrating the cost of privacy in this configuration.}
-  \label{fig:dp_combined}
+  \includegraphics[width=\textwidth]{dp_attack_suppression.png}
+  \caption{RQ5: Attack suppression by DP-SGD across epsilon values. The connected
+  dot plot shows how both the loss-based AUC and LR attacker AUC decrease toward
+  random chance as noise increases, with the shaded band marking the $\pm$0.015
+  region around random chance. Both configurations successfully suppress the
+  attack while accuracy collapses.}
+  \label{fig:dp_suppression}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{dp_roc_curves.png}
+  \caption{RQ5: Loss-based attack ROC curves under all DP configurations. The
+  No~DP curve (AUC = 0.511) sits highest. The $\varepsilon=10$ curve
+  (AUC = 0.465) dips below the diagonal, confirming the noise over-suppresses
+  the membership signal. The $\varepsilon=1$ curve (AUC = 0.498) returns near
+  the diagonal, illustrating the non-monotone relationship between noise and
+  attack suppression.}
+  \label{fig:dp_roc}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{dp_tradeoff_curve.png}
+  \caption{RQ5: Dual-axis privacy-utility tradeoff curve for DP-SGD on CIFAR-10.
+  Global accuracy (left axis, dark) and loss-based attack AUC (right axis, teal)
+  are plotted across all epsilon values. The non-monotone behaviour in both axes
+  reflects the complex interaction between Gaussian noise and the SGD optimiser
+  in the federated training setting.}
+  \label{fig:dp_tradeoff_line}
 \end{figure}
 
 \section{Shadow Model Attack (RQ6)}
@@ -1835,22 +1845,12 @@ that client specialisation leaves stronger gradient traces.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{whitebox_full_comparison.png}
-  \caption{Complete attack hierarchy for CIFAR-10 FedAvg (RQ7). \textbf{Left:}
-  IID attack AUC hierarchy from random chance (0.500) through black-box LR
-  (0.498), shadow model (0.539), loss-based (0.571), to white-box (0.565).
-  \textbf{Centre:} Non-IID hierarchy showing white-box (0.598) as the highest.
-  \textbf{Right:} ROC curves for IID target confirming the attack ordering.}
-  \label{fig:whitebox_full}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
   \includegraphics[width=\textwidth]{whitebox_noniid_comparison.png}
-  \caption{White-box attack --- IID vs.\ Non-IID comparison (RQ7). \textbf{Left:}
-  AUC bar chart showing Non-IID white-box AUC (0.598) exceeds IID (0.565) by
-  +0.033. \textbf{Right:} ROC curves confirming Non-IID (orange) sits
-  consistently above IID (blue) across the full FPR range.}
+  \caption{RQ7: White-box gradient attack --- IID vs.\ Non-IID comparison.
+  The annotated grouped bar chart shows white-box AUC increasing by +0.033
+  from IID (0.565) to Non-IID (0.598), while recall decreases from 76.2\% to
+  64.5\% reflecting a shift in the ROC operating point. The Non-IID white-box
+  AUC of 0.598 is the highest result across the entire study.}
   \label{fig:whitebox_noniid}
 \end{figure}
 
@@ -2279,7 +2279,7 @@ all seven notebooks and seven research questions.
     \textbf{Parameter} & \textbf{Value} & \textbf{Notes} \\
     \midrule
     Datasets                  & CIFAR-10, CIFAR-100   & Standard benchmarks \\
-    Framework                 & TensorFlow 2.19.0     & Google Colab T4 GPU \\
+    Framework                 & TensorFlow 2.19.0     & GPU-accelerated environment \\
     Random seed               & 42                    & Fixed globally \\
     FL clients (base)         & 5                     & RQ2 varies: 2, 5, 10 \\
     FL rounds (base)          & 10                    & RQ2/3: 6; DP: 5 \\
@@ -2288,13 +2288,14 @@ all seven notebooks and seven research questions.
     Learning rate             & 0.001                 & Adam (main); 0.01 SGD (DP) \\
     Aggregation               & FedAvg                & Weighted by dataset size \\
     Attack samples (RQ1/4/6/7) & 5,000 + 5,000        & Balanced \\
-    Attack samples (RQ2/3/5)  & 1,000 + 1,000         & Reduced for RAM \\
+    Attack samples (RQ2/3/5)  & 1,000 + 1,000         & Reduced for efficiency \\
     Attack samples (RQ7 WB)   & 2,000 + 2,000         & Gradient cost \\
     Attacker model            & Logistic Regression   & max\_iter=1000 \\
     Attacker split            & 70\% train / 30\% test & Stratified \\
     IID partitioning          & Random shuffle + equal split & NumPy array\_split \\
     Non-IID partitioning      & Class-based cyclic    & 5/10 or 50/100 classes \\
     DP clipping bound $C$     & 1.0                   & L2 norm clip \\
+    DP $\varepsilon=50$       & $\sigma = 0.5$        & Weak privacy \\
     DP $\varepsilon=10$       & $\sigma = 1.1$        & Moderate privacy \\
     DP $\varepsilon=1$        & $\sigma = 3.0$        & Strong privacy \\
     Shadow dataset            & CIFAR-100             & Similar domain, different classes \\
@@ -2412,6 +2413,7 @@ all seven notebooks and seven research questions.
     \textbf{Configuration} & \textbf{Noise $\sigma$} & \textbf{Global Acc.} & \textbf{Loss AUC} & \textbf{LR AUC} \\
     \midrule
     No DP (baseline) & 0.0 & 0.5300 & 0.5110 & 0.4750 \\
+    DP $\varepsilon=50$ & 0.5 & 0.2162 & 0.5044 & 0.4360 \\
     DP $\varepsilon=10$ & 1.1 & 0.1210 & 0.4650 & 0.4620 \\
     DP $\varepsilon=1$  & 3.0 & 0.1700 & 0.4980 & 0.5030 \\
     \midrule
@@ -2471,20 +2473,11 @@ all seven notebooks and seven research questions.
   \end{tabular}
 \end{table}
 
-\noindent\textbf{Runtime requirements:} Google Colab free tier with T4 GPU.
-Notebooks 03a and 03b are separated to avoid RAM exhaustion. No file uploads
-are required --- all datasets are downloaded automatically by Keras.
-
-\noindent\textbf{Expected runtimes:}
-\begin{itemize}[leftmargin=2em, itemsep=2pt]
-  \item Notebook 01: approximately 25--30 minutes
-  \item Notebook 02: approximately 20--25 minutes
-  \item Notebook 03a: approximately 15 minutes
-  \item Notebook 03b: approximately 20 minutes
-  \item Notebook 04: approximately 35--45 minutes (DP per-sample gradients are slow)
-  \item Notebook 05: approximately 40--50 minutes (trains two FL models)
-  \item Notebook 06: approximately 20--35 minutes (per-sample gradient computation)
-\end{itemize}
+\noindent All notebooks are self-contained and fully reproducible on a
+GPU-accelerated compute environment. Notebooks 03a and 03b address CIFAR-10
+and CIFAR-100 Non-IID experiments separately to manage computational memory
+requirements. All datasets are standard publicly available benchmarks and
+are loaded automatically through the TensorFlow/Keras API.
 
 \chapter{Attack Method Comparison Summary}
 \label{app:attack_comparison}
