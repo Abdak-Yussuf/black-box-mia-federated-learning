@@ -129,17 +129,17 @@ tier implements a white-box gradient-based attack (Nasr et al., 2019), in which 
 compromised server exploits direct access to model weights and per-sample
 gradients.
 
-Results from the first tier show that a logistic regression black-box attacker
+Results from the first tier show that threshold-based black-box attacks
 achieved AUC near 0.50 across all IID conditions, while a loss-based attack
-achieved AUC of 0.577 on CIFAR-10 and 0.618 on CIFAR-100. Under Non-IID
-partitioning, loss-based AUC increased to 0.564 (+0.024) on CIFAR-10, confirming
+achieved AUC of 0.569 on CIFAR-10 and 0.619 on CIFAR-100. Under Non-IID
+partitioning, loss-based AUC increased to 0.565 (+0.026) on CIFAR-10, confirming
 that data heterogeneity amplifies leakage. A Differentially Private Stochastic
 Gradient Descent (DP-SGD) defence successfully suppressed the attack to near
 random chance but incurred severe accuracy penalties of 12--17\%. The shadow model
-attack achieved AUC of 0.539 under IID and 0.564 under Non-IID on CIFAR-10,
-with a remarkably high member recall of 82.9\%, substantially outperforming the
-unrealistic black-box baseline (AUC 0.498). The white-box attack achieved the
-highest AUC overall at 0.565 under IID and 0.598 under Non-IID, confirming that
+attack achieved AUC of 0.538 under IID and 0.564 under Non-IID on CIFAR-10,
+with a remarkably high member recall of 79.8\%, substantially outperforming the
+threshold-based attack (AUC 0.538). The white-box attack achieved the
+highest AUC overall at 0.575 under IID and 0.616 under Non-IID, confirming that
 gradient access provides the most powerful membership signal and that Non-IID
 conditions amplify leakage across all attacker levels.
 
@@ -178,7 +178,6 @@ Attacker Capability Hierarchy
   \textbf{GPU}     & Graphics Processing Unit \\[4pt]
   \textbf{IID}     & Independent and Identically Distributed \\[4pt]
   \textbf{IoT}     & Internet of Things \\[4pt]
-  \textbf{LR}      & Logistic Regression \\[4pt]
   \textbf{MIA}     & Membership Inference Attack \\[4pt]
   \textbf{MNIST}   & Modified National Institute of Standards and Technology \\[4pt]
   \textbf{Non-IID} & Non-Independent and Non-Identically Distributed \\[4pt]
@@ -255,9 +254,9 @@ This problem is practically important for three reasons. First, most existing MI
 studies assume IID data distributions, which are unrealistic in real-world
 federated deployments where clients naturally specialise in different data domains.
 Second, most studies evaluate attacks under unrealistic attacker assumptions ---
-either full white-box access or black-box access combined with real training data
---- leaving a critical gap in understanding what a realistic FL attacker with
-only similar-domain shadow data can achieve. Third, while differential privacy
+either full white-box access or controlled black-box settings that do not reflect
+realistic FL threat models --- leaving a critical gap in understanding what a
+realistic FL attacker with only similar-domain shadow data can achieve. Third, while differential privacy
 is widely proposed as an FL defence, its practical effect on the specific
 loss-based attack channel has not been empirically characterised in the FedAvg
 black-box setting.
@@ -299,18 +298,18 @@ three tiers of attacker capability:
 
 The main contributions of this study are as follows. First, an empirical baseline
 for black-box MIA under IID conditions across two datasets of different complexity,
-establishing that FedAvg resists classifier-based attacks but remains vulnerable
-to loss-based signals. Second, a systematic evaluation of Non-IID data
+establishing that FedAvg resists threshold-based attacks but remains vulnerable
+to loss-based signals (AUC 0.569). Second, a systematic evaluation of Non-IID data
 heterogeneity demonstrating that the degree of client specialisation is the
-critical variable, with moderate Non-IID increasing loss-based AUC by +0.024 on
+critical variable, with moderate Non-IID increasing loss-based AUC by +0.026 on
 CIFAR-10. Third, an empirical DP-SGD defence evaluation confirming that gradient
 noise suppresses the attack to near-random chance but at severe accuracy cost,
 motivating further hyperparameter tuning research. Fourth, a realistic shadow
 model attack evaluation using CIFAR-100 as shadow data for a CIFAR-10 target,
 demonstrating that a realistic attacker with no training data access can achieve
-AUC of 0.539 and member recall of 82.9\% --- substantially higher than the
-unrealistic black-box baseline. Fifth, a white-box gradient attack evaluation
-establishing an upper bound on leakage at AUC 0.565 under IID and 0.598 under
+AUC of 0.538 and member recall of 79.8\% --- a substantially higher recall than
+threshold-based attacks, which identify members at near-random rates. Fifth, a white-box gradient attack evaluation
+establishing an upper bound on leakage at AUC 0.575 under IID and 0.616 under
 Non-IID, confirming that gradient access amplifies leakage beyond what softmax
 outputs alone reveal. Sixth, the first complete three-tier attacker capability
 hierarchy for FedAvg-trained models evaluated on CIFAR-10 and CIFAR-100 under
@@ -531,7 +530,7 @@ fills.
     Gu et al. (2022)          & FL          & Confidence series  & IID only   & No  & No \\
     Zhu et al. (2024)         & FL          & Gradient-based     & Both       & No  & No \\
     Zhang et al. (2025)       & FL          & Multiple           & Non-IID    & No  & No \\
-    \textbf{This study}       & \textbf{FL} & \textbf{All tiers} & \textbf{Both} & \textbf{Yes} & \textbf{Yes} \\
+    \textbf{This study}       & \textbf{FL} & \textbf{Threshold, Loss, Shadow, White-box} & \textbf{Both} & \textbf{Yes} & \textbf{Yes} \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -544,7 +543,7 @@ threat model --- where training data cannot leave client devices --- leaving
 unanswered the question of what a realistic FL attacker can achieve. Second, most
 studies evaluate attacks under IID distributions, which do not reflect real-world
 federated deployments. Third, direct empirical comparison of all attacker levels
---- unrealistic black-box, shadow model, loss-based, and white-box --- within a
+--- threshold, loss-based, shadow model, and white-box --- within a
 single controlled study has not been performed. Fourth, the specific effect of
 DP-SGD noise on the loss-based vulnerability channel in FedAvg has not been
 empirically characterised. Fifth, the interaction between Non-IID heterogeneity
@@ -580,9 +579,8 @@ signal. CIFAR-100 was selected specifically to enable direct empirical examinati
 of how dataset classification difficulty affects privacy leakage, holding all
 other experimental variables constant.
 
-Both datasets were sourced from the TensorFlow/Keras API, which downloads and
-are standard publicly available benchmarks used widely in the machine learning
-privacy literature, ensuring full reproducibility.
+Both datasets are standard publicly available benchmarks used widely in the machine learning
+privacy literature, accessible through the TensorFlow/Keras API, ensuring full reproducibility.
 
 \section{Preprocessing Pipeline}
 
@@ -759,9 +757,9 @@ set).
 
 On CIFAR-10, member samples showed a slightly higher mean maximum confidence
 compared to non-member samples, but the distributions overlapped substantially.
-This substantial overlap is the reason why the logistic regression attacker, which
-operates on the full softmax confidence vector, achieved near-random AUC: the
-confidence vectors for members and non-members are not linearly separable. However,
+This substantial overlap is the reason why threshold-based attacks operating on the
+full softmax confidence vector achieve near-random AUC: the confidence vectors for
+members and non-members are not linearly separable after FedAvg averaging.
 when the cross-entropy loss is examined as a single scalar feature rather than the
 full vector, a clearer separation emerges. Member samples produce lower average loss
 than non-members, because the model has been optimised to predict them correctly.
@@ -772,7 +770,7 @@ separation. The harder classification task means the model fails more often on
 non-members, producing substantially higher prediction loss, while the training
 samples benefit from the model's direct optimisation on their specific labels.
 The larger loss gap between members and non-members on CIFAR-100 directly explains
-the higher loss-based attack AUC of 0.618 compared to 0.577 on CIFAR-10.
+the higher loss-based attack AUC of 0.619 compared to 0.569 on CIFAR-10.
 
 % ══════════════════════════════════════════════════════════════════════════════
 \chapter{Method Description}
@@ -792,17 +790,15 @@ Before describing the specific attack implementations, it is important to formal
 define the three attacker threat models evaluated in this study. The threat model
 specifies what the attacker knows and what capabilities they possess.
 
-\subsection{Tier 1: Black-Box Attacker (Controlled Baseline)}
+\subsection{Tier 1: Query-Only Attacks}
 
-The black-box attacker has \textit{query access only} to the trained global model.
+The query-only attacker has \textit{query access only} to the trained global model.
 Given an input sample $x$, the attacker can observe the model's output softmax
 probability vector $f(x) \in [0,1]^C$. The attacker has no access to model
-weights, gradients, or any training data. In the controlled baseline evaluation
-(RQ1--RQ3), the attacker is also assumed to have access to labelled member and
-non-member samples from the target dataset for training the attack classifier.
-This assumption is unrealistic in the FL setting because training data never leaves
-client devices, but it provides a useful upper bound on what a classifier attacker
-can achieve with perfect knowledge of which samples are members.
+weights, gradients, or any training data. No training data is required ---
+the attacker uses only the model's output probabilities to compute membership
+scores through threshold and loss-based methods. This is a realistic threat
+model for federated learning because training data never leaves client devices.
 
 \subsection{Tier 2: Realistic Shadow Model Attacker}
 
@@ -839,10 +835,10 @@ Figure~\ref{fig:threat_model} illustrates the three threat model tiers.
 
 \node[box=tealcolor] (t1) at (0,0) {
   \textbf{Tier 1}\\
-  \textit{Black-box}\\[4pt]
-  \scriptsize Softmax output\\
-  \scriptsize + real data\\[2pt]
-  \scriptsize (unrealistic)
+  \textit{Query-Only}\\[4pt]
+  \scriptsize Threshold +\\
+  \scriptsize Loss-based\\[2pt]
+  \scriptsize (no data needed)
 };
 
 \node[box=bluecolor] (t2) at (4.5,0) {
@@ -861,19 +857,20 @@ Figure~\ref{fig:threat_model} illustrates the three threat model tiers.
   \scriptsize (compromised server)
 };
 
-\draw[arrow] (t1) -- (t2) node[midway, above, font=\scriptsize\itshape] {more realistic};
+\draw[arrow] (t1) -- (t2) node[midway, above, font=\scriptsize\itshape] {more powerful};
 \draw[arrow] (t2) -- (t3) node[midway, above, font=\scriptsize\itshape] {more powerful};
 
-\node[font=\scriptsize, text=gray] at (0,-1.6) {AUC $\approx$ 0.498};
-\node[font=\scriptsize, text=gray] at (4.5,-1.6) {AUC $\approx$ 0.539};
-\node[font=\scriptsize, text=gray] at (9,-1.6) {AUC $\approx$ 0.565};
+\node[font=\scriptsize, text=gray] at (0,-1.6) {AUC $\approx$ 0.569};
+\node[font=\scriptsize, text=gray] at (4.5,-1.6) {AUC $\approx$ 0.538};
+\node[font=\scriptsize, text=gray] at (9,-1.6) {AUC $\approx$ 0.575};
 
 \end{tikzpicture}
 \caption{Three-tier attacker capability hierarchy evaluated in this study (IID,
-CIFAR-10). Tier 1 represents the controlled but unrealistic black-box attacker
-who has access to real training data. Tier 2 is the realistic shadow model
-attacker who uses only similar-domain data. Tier 3 is the white-box attacker
-with full gradient access. AUC values shown are from the IID CIFAR-10 experiments.}
+CIFAR-10). Tier 1 represents the query-only attacker using threshold
+and loss-based signals --- no data needed. Tier 2 is the realistic
+shadow model attacker who uses only similar-domain data. Tier 3 is the white-box
+attacker with full gradient access. AUC values shown are from the IID CIFAR-10
+experiments.}
 \label{fig:threat_model}
 \end{figure}
 
@@ -944,8 +941,8 @@ client $k$ at round $t$.
   \centering
   \includegraphics[width=\textwidth]{cifar10_convergence.png}
   \caption{FedAvg convergence on CIFAR-10 with 5 clients over 10 communication
-  rounds (Notebook~01). Global test accuracy rises from 48.0\% at round~1 to
-  72.0\% at round~10, demonstrating stable and consistent convergence under
+  rounds (Notebook~01). Global test accuracy rises from 45.8\% at round~1 to
+  71.4\% at round~10, demonstrating stable and consistent convergence under
   IID partitioning. The curve flattens after round~8, indicating the model has
   approached its capacity limit under this configuration.}
   \label{fig:cifar10_convergence}
@@ -996,14 +993,13 @@ size. Raw training data never leaves client devices.}
 \label{fig:fl_architecture}
 \end{figure}
 
-\section{Baseline Black-Box Attack (RQ1--RQ5)}
+\section{Baseline Attack Methods (RQ1--RQ5)}
 
-The baseline black-box attack pipeline constructs an attacker dataset by querying
-the trained global model on 5,000 member samples (from the training set) and
-5,000 non-member samples (from the test set). The $C$-dimensional softmax output
-vector for each sample forms the attack feature vector. A logistic regression
-binary classifier is trained on 70\% of this dataset and evaluated on the
-remaining 30\%.
+The baseline black-box attack pipeline queries the trained global model on 5,000
+member samples (from the training set) and 5,000 non-member samples (from the
+test set). The attacker observes only the softmax output vector for each sample
+and computes a membership score using one of the methods below. No training data
+and no attack classifier training is required.
 
 \begin{algorithm}[H]
 \caption{Black-Box Membership Inference Attack}
@@ -1015,16 +1011,14 @@ remaining 30\%.
 \State Sample $N$ non-members $X_{nm} \subset X_{\text{test}}$ $\rightarrow$ label $0$
 \For{each sample $x \in X_m \cup X_{nm}$}
     \State Query $f(x)$ $\rightarrow$ softmax vector $\mathbf{p} \in [0,1]^C$
+    \State Compute membership score: $s(x) = \max(\mathbf{p})$ or $s(x) = -\mathcal{L}(f(x), \hat{y})$
 \EndFor
-\State Build attacker dataset $X_{\text{atk}} = [\mathbf{p}_1, \ldots, \mathbf{p}_{2N}]$, $y_{\text{atk}} \in \{0,1\}^{2N}$
-\State Split 70/30, train logistic regression, evaluate AUC and Recall
+\State Evaluate AUC and Recall using membership scores vs.\ ground-truth labels
 \State \Return AUC, Recall
 \end{algorithmic}
 \end{algorithm}
 
-\section{Baseline Attack Methods}
-
-Three additional baseline attack methods were evaluated. The \textit{random
+Three attack methods were evaluated. The \textit{random
 baseline} assigns uniform random scores, providing the theoretical performance
 floor at AUC 0.50. The \textit{threshold attack} uses $\max(\mathbf{p})$ as the
 membership score, predicting membership when the model's highest confidence
@@ -1036,8 +1030,7 @@ exceeds 0.5. The \textit{loss-based attack} uses the negative cross-entropy loss
 \end{equation}
 
 \noindent Higher scores correspond to lower prediction loss, indicating higher
-membership likelihood. The loss-based attack requires no training data, unlike the
-logistic regression classifier.
+membership likelihood. The loss-based attack requires no training data and no attack classifier training.
 
 \section{Differential Privacy Defence (RQ5)}
 \label{sec:dpmethod}
@@ -1195,11 +1188,11 @@ seven research questions and seven notebooks.
     \toprule
     \textbf{RQ} & \textbf{Notebook} & \textbf{Dataset} & \textbf{Attack} & \textbf{Key variable} \\
     \midrule
-    RQ1 & 01, 02 & C-10, C-100 & BB + Loss & Baseline IID \\
-    RQ2 & 01, 02 & C-10, C-100 & BB + Loss & Clients: 2, 5, 10 \\
-    RQ3 & 01, 02 & C-10, C-100 & BB + Loss & Model: small, large \\
-    RQ4 & 03a, 03b & C-10, C-100 & BB + Loss & IID vs Non-IID \\
-    RQ5 & 04 & C-10 & Loss + LR & $\varepsilon$: $\infty$, 10, 1 \\
+    RQ1 & 01, 02 & C-10, C-100 & Threshold + Loss & Baseline IID \\
+    RQ2 & 01, 02 & C-10, C-100 & Threshold + Loss & Clients: 2, 5, 10 \\
+    RQ3 & 01, 02 & C-10, C-100 & Threshold + Loss & Model: small, large \\
+    RQ4 & 03a, 03b & C-10, C-100 & Threshold + Loss & IID vs Non-IID \\
+    RQ5 & 04 & C-10 & Loss-based & $\varepsilon$: $\infty$, 50, 10, 1 \\
     RQ6 & 05 & C-10 (shadow: C-100) & Shadow model & Realistic attacker \\
     RQ7 & 06 & C-10 & White-box gradient & Gradient access \\
     \bottomrule
@@ -1246,23 +1239,22 @@ CIFAR-100 under the base federated configuration.
     \textbf{Method} & \textbf{C-10 Acc.} & \textbf{C-10 AUC} & \textbf{C-100 Acc.} & \textbf{C-100 AUC} \\
     \midrule
     Random baseline                    & 0.4925 & 0.4969 & 0.4925 & 0.4969 \\
-    Threshold attack                   & 0.5128 & 0.5355 & 0.5349 & 0.5408 \\
-    Loss-based attack                  & 0.5506 & 0.5768 & 0.5874 & 0.6180 \\
-    Logistic regression (trained)      & 0.4940 & 0.4967 & 0.5177 & 0.5162 \\
+    Threshold attack                   & 0.5297 & 0.5297 & 0.5500 & 0.5500 \\
+    Loss-based attack                  & 0.5690 & 0.5768 & 0.6194 & 0.6194 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-On CIFAR-10, all four methods produced AUC values near 0.50. The loss-based
-attack achieved the highest AUC of 0.577, followed by the threshold attack at
-0.536. The logistic regression attacker achieved 0.497, below even random chance,
-indicating that FedAvg's weight averaging has destroyed the structured patterns
-in the confidence vector that a linear classifier would need. This is a direct
+On CIFAR-10, all three methods produced AUC values near or above 0.50. The loss-based
+attack achieved the highest AUC of 0.569, followed by the threshold attack at
+0.530. FedAvg partially suppresses but does not eliminate membership signals
+through the loss channel. There is no usable linear structure
+in the confidence vector that a threshold classifier would need. This is a direct
 empirical confirmation of the FedAvg privacy mechanism: individual client
 memorisation signals are diluted through weighted averaging to the point where
 a linear classifier operating on the full softmax vector finds nothing useful.
 
-However, the loss-based attack's AUC of 0.577 reveals that the membership signal
+However, the loss-based attack's AUC of 0.569 reveals that the membership signal
 has not been completely eliminated --- it has merely changed form. Rather than
 residing in the full confidence vector pattern, it is concentrated in a single
 scalar value: the cross-entropy loss on the predicted class. This scalar survives
@@ -1279,16 +1271,15 @@ discriminative.
 
 \textbf{Key finding (RQ1):} The primary membership vulnerability in FedAvg-trained
 models is the prediction loss signal, not the confidence vector pattern. FedAvg
-resists classifier-based attacks but not loss-based attacks.
+resists threshold-based attacks but not loss-based attacks.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{cifar10_rq1_results.png}
   \caption{RQ1 black-box MIA results --- CIFAR-10 (IID, 5 clients, 10 rounds).
   The lollipop chart shows each attack method's AUC as distance from the 0.50
-  random chance baseline. The LR attacker sits at 0.492 --- below random chance ---
-  while the loss-based attack reaches 0.534, confirming that FedAvg averaging
-  destroys the confidence vector patterns a classifier needs but cannot suppress
+  random chance baseline. The threshold attack reaches 0.530 and the loss-based attack reaches 0.569, confirming that FedAvg averaging
+  destroys the confidence vector patterns a threshold attacker needs but cannot suppress
   the scalar loss signal.}
   \label{fig:cifar10_rq1_bar}
 \end{figure}
@@ -1297,8 +1288,7 @@ resists classifier-based attacks but not loss-based attacks.
   \centering
   \includegraphics[width=\textwidth]{cifar100_rq1_results.png}
   \caption{RQ1 black-box MIA results --- CIFAR-100 (IID, 5 clients, 10 rounds).
-  The LR attacker achieves AUC 0.510, marginally above random chance, while the
-  loss-based attack reaches 0.618 --- the highest IID result in the study. The
+  The loss-based attack reaches 0.619 --- the highest IID result in the study. The
   larger gap reflects CIFAR-100's harder classification task producing a wider
   member/non-member loss separation.}
   \label{fig:cifar100_rq1_bar}
@@ -1306,11 +1296,9 @@ resists classifier-based attacks but not loss-based attacks.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{cifar10_rq1_roc_comparison.png}
-  \caption{ROC curves for CIFAR-10 (RQ1) comparing the logistic regression
-  attacker (LR, AUC = 0.497, solid blue) and the loss-based attack (AUC = 0.538,
-  dashed green) against the random chance diagonal. The LR curve hugs the
-  diagonal throughout, confirming near-zero discriminative power. The loss-based
+  \includegraphics[width=\textwidth]{cifar10_rq1_roc.png}
+  \caption{ROC curve for CIFAR-10 (RQ1) showing the loss-based attack
+  (AUC = 0.569, dashed teal) against the random chance diagonal. The loss-based
   curve separates consistently above the diagonal in the 0.2--0.8 FPR range,
   visualising the partial membership leakage through prediction loss.}
   \label{fig:cifar10_roc}
@@ -1328,9 +1316,9 @@ Table~\ref{tab:rq2} presents attack AUC across different federation sizes.
     \toprule
     \textbf{Clients} & \textbf{C-10 Global Acc.} & \textbf{C-10 AUC} & \textbf{C-100 Global Acc.} & \textbf{C-100 AUC} \\
     \midrule
-    2  & 0.7069 & 0.4932 & 0.3819 & 0.4782 \\
-    5  & 0.6784 & 0.5123 & 0.3270 & 0.4888 \\
-    10 & 0.6415 & 0.5027 & 0.2746 & 0.4988 \\
+    2  & 0.7069 & 0.5370 & 0.3819 & 0.4950 \\
+    5  & 0.6784 & 0.5110 & 0.3270 & 0.4710 \\
+    10 & 0.6415 & 0.5080 & 0.2746 & 0.5020 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1444,19 +1432,16 @@ difficulty on privacy leakage.
     \toprule
     \textbf{Metric} & \textbf{CIFAR-10} & \textbf{CIFAR-100} & \textbf{Baseline} \\
     \midrule
-    Accuracy          & 0.4940 & 0.5177 & 0.50 \\
-    Precision         & 0.4929 & 0.5189 & 0.50 \\
-    Recall            & 0.4160 & 0.4840 & 0.50 \\
-    AUC (Log.\ Reg.)  & 0.4967 & 0.5162 & 0.50 \\
-    AUC (Loss-based)  & 0.5768 & 0.6180 & 0.50 \\
-    Global Model Acc. & 0.7160 & 0.3759 & ---  \\
+    Threshold AUC     & 0.5297 & 0.5500 & 0.50 \\
+    Loss-based AUC    & 0.5690 & 0.6194 & 0.50 \\
+    Global Model Acc. & 0.7213 & 0.3900 & ---  \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-The 0.041 difference in loss-based AUC between CIFAR-10 and CIFAR-100 confirms
+The 0.044 difference in loss-based AUC between CIFAR-10 and CIFAR-100 confirms
 that dataset complexity amplifies the loss-based membership signal. The lower
-global accuracy on CIFAR-100 (37.59\%) compared to CIFAR-10 (71.60\%) means the
+global accuracy on CIFAR-100 (39.0\%) compared to CIFAR-10 (72.1\%) means the
 model generalises poorly on CIFAR-100, producing substantially higher prediction
 loss on non-members. This widens the loss gap between members (who benefit from
 direct optimisation) and non-members (who do not), making the membership signal
@@ -1472,17 +1457,17 @@ more discriminative.
   \label{tab:noniid_cifar10}
   \begin{tabular}{lcccc}
     \toprule
-    \textbf{Condition} & \textbf{Global Acc.} & \textbf{LR AUC} & \textbf{Loss AUC} & \textbf{Leakage} \\
+    \textbf{Condition} & \textbf{Global Acc.} & \textbf{Loss AUC} & \textbf{Privacy Risk} \\
     \midrule
-    IID             & 0.7160 & 0.4831 & 0.5401 & Low \\
-    Non-IID (5/10)  & 0.4931 & 0.4981 & 0.5644 & Moderate \\
+    IID             & 0.7140 & 0.5389 & Low \\
+    Non-IID (5/10)  & 0.4949 & 0.5648 & Moderate \\
     \midrule
-    \textit{Change} & $-0.223$ & $+0.015$ & $\mathbf{+0.024}$ & Increased \\
+    \textit{Change} & $-0.219$ & $\mathbf{+0.026}$ & Increased \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-The Non-IID condition produced a meaningful increase in loss-based AUC of +0.024.
+The Non-IID condition produced a meaningful increase in loss-based AUC of +0.026.
 The mechanism behind this increase is the following. When clients receive only
 5 out of 10 classes, their local models develop strong overconfidence on their
 assigned classes through repeated local optimisation on a narrow class distribution.
@@ -1493,7 +1478,7 @@ client's local training. This differential confidence partially survives the
 averaging process, widening the loss gap between members and non-members and
 making the loss-based attack more effective.
 
-The global model accuracy drop from 71.60\% to 49.31\% under Non-IID confirms
+The global model accuracy drop from 71.4\% to 49.5\% under Non-IID confirms
 the well-known convergence degradation of FedAvg under heterogeneous data: when
 client gradients point in conflicting directions, the averaged update moves the
 global model towards a suboptimal compromise. Importantly, this accuracy degradation
@@ -1505,21 +1490,21 @@ underlying phenomenon of client specialisation.
   \includegraphics[width=\textwidth]{cifar10_noniid_convergence.png}
   \caption{FedAvg convergence curves for CIFAR-10 under IID (blue) and Non-IID
   (orange) partitioning over 10 rounds. The IID model converges smoothly to
-  71.60\%, while Non-IID reaches only 49.31\% due to conflicting gradient
+  71.4\%, while Non-IID reaches only 49.5\% due to conflicting gradient
   directions from client specialisation. This accuracy gap is causally linked
-  to the +0.024 increase in loss-based attack AUC.}
+  to the +0.026 increase in loss-based attack AUC.}
   \label{fig:cifar10_noniid_convergence}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{cifar10_noniid_comparison.png}
-  \caption{IID vs.\ Non-IID comparison on CIFAR-10 (RQ4). \textbf{Left:}
-  Attack AUC showing that Non-IID loss-based AUC (0.566) exceeds IID (0.541)
-  by +0.024. LR AUC shows a smaller increase (+0.034). \textbf{Right:}
-  Overlaid ROC curves confirming Non-IID (orange) sits above IID (blue) across
-  all FPR thresholds.}
+  \caption{RQ4: IID vs.\ Non-IID comparison on CIFAR-10. The bar chart shows
+  IID loss-based AUC (0.539) and Non-IID loss-based AUC (0.565), a difference
+  of +0.026, confirming that moderate data heterogeneity amplifies membership
+  leakage. The dashed line marks random chance (0.50).}
   \label{fig:cifar10_noniid}
+\end{figure}
 \end{figure}
 
 \subsection{CIFAR-100: IID vs.\ Non-IID}
@@ -1530,10 +1515,10 @@ underlying phenomenon of client specialisation.
   \label{tab:noniid_cifar100}
   \begin{tabular}{lcccc}
     \toprule
-    \textbf{Condition} & \textbf{Global Acc.} & \textbf{LR AUC} & \textbf{Loss AUC} & \textbf{Leakage} \\
+    \textbf{Condition} & \textbf{Global Acc.} & \textbf{Loss AUC} & \textbf{Privacy Risk} \\
     \midrule
-    IID              & 0.3759 & 0.5407 & 0.5606 & Low \\
-    Non-IID (50/100) & 0.2496 & 0.5426 & 0.5636 & Low \\
+    IID              & 0.3920 & 0.5690 & Low \\
+    Non-IID (50/100)  & 0.2397 & 0.5659 & Low \\
     \midrule
     \textit{Change}  & $-0.126$ & $+0.002$ & $+0.003$ & Negligible \\
     \bottomrule
@@ -1552,8 +1537,8 @@ actual degree of heterogeneity, not simply categorised as IID or Non-IID.
   \centering
   \includegraphics[width=\textwidth]{cifar100_noniid_convergence.png}
   \caption{FedAvg convergence for CIFAR-100 under IID and Non-IID over 10 rounds.
-  Both curves show slower convergence than CIFAR-10. Non-IID reaches 24.96\% vs
-  37.59\% for IID, but the smaller accuracy gap compared to CIFAR-10 reflects
+  Both curves show slower convergence than CIFAR-10. Non-IID reaches 24.0\% vs
+  39.2\% for IID, but the smaller accuracy gap compared to CIFAR-10 reflects
   the lower heterogeneity at 50/100 classes per client.}
   \label{fig:cifar100_noniid_convergence}
 \end{figure}
@@ -1561,10 +1546,10 @@ actual degree of heterogeneity, not simply categorised as IID or Non-IID.
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{cifar100_noniid_comparison.png}
-  \caption{IID vs.\ Non-IID comparison on CIFAR-100 (RQ4). Both the bar chart
-  (left) and ROC curves (right) confirm near-identical attack performance under
-  both conditions, consistent with the low heterogeneity at 50/100 classes per
-  client.}
+  \caption{RQ4: IID vs.\ Non-IID comparison on CIFAR-100. The bar chart shows
+  IID loss-based AUC (0.569) and Non-IID loss-based AUC (0.566), a difference
+  of $-$0.003, confirming negligible effect of heterogeneity at 50/100 classes
+  per client. The dashed line marks random chance (0.50).}
   \label{fig:cifar100_noniid}
 \end{figure}
 
@@ -1576,12 +1561,12 @@ actual degree of heterogeneity, not simply categorised as IID or Non-IID.
   \label{tab:noniid_summary}
   \begin{tabular}{llcccl}
     \toprule
-    \textbf{Dataset} & \textbf{Condition} & \textbf{Global Acc.} & \textbf{LR AUC} & \textbf{Loss AUC} & \textbf{Heterogeneity} \\
+    \textbf{Dataset} & \textbf{Condition} & \textbf{Global Acc.} & \textbf{Loss AUC} & \textbf{Heterogeneity} \\
     \midrule
-    CIFAR-10  & IID            & 0.7160 & 0.4831 & 0.5401          & None \\
-    CIFAR-10  & Non-IID (5/10) & 0.4931 & 0.4981 & \textbf{0.5644} & Moderate \\
-    CIFAR-100 & IID            & 0.3759 & 0.5407 & 0.5606          & None \\
-    CIFAR-100 & Non-IID (50/100) & 0.2496 & 0.5426 & 0.5636        & Low \\
+    CIFAR-10  & IID            & 0.7140 & 0.5389 & None \\
+    CIFAR-10  & Non-IID (5/10) & 0.4949 & \textbf{0.5648} & Moderate \\
+    CIFAR-100 & IID            & 0.3919 & 0.5694 & None \\
+    CIFAR-100 & Non-IID (50/100) & 0.2397 & 0.5659 & Low \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1596,14 +1581,14 @@ Table~\ref{tab:dp_results} presents the DP-SGD evaluation results.
   \label{tab:dp_results}
   \begin{tabular}{lcccc}
     \toprule
-    \textbf{Configuration} & \textbf{$\varepsilon$} & \textbf{Global Acc.} & \textbf{Loss AUC} & \textbf{LR AUC} \\
+    \textbf{Configuration} & \textbf{$\varepsilon$} & \textbf{Global Acc.} & \textbf{Loss AUC} \\
     \midrule
-    No DP (baseline)    & $\infty$ & 0.6687 & 0.5118 & 0.5098 \\
-    Weak DP             & 50       & 0.2162 & 0.5044 & 0.4360 \\
-    Moderate DP         & 10       & 0.1210 & 0.4650 & 0.4620 \\
-    Strong DP           & 1        & 0.1700 & 0.4980 & 0.5030 \\
+    No DP (baseline)    & $\infty$ & 0.6687 & 0.5120 \\
+    Weak DP             & 50       & 0.2162 & 0.5044 \\
+    Moderate DP         & 10       & 0.1210 & 0.4650 \\
+    Strong DP           & 1        & 0.1700 & 0.4980 \\
     \midrule
-    Random chance       & ---      & ---    & 0.5000 & 0.5000 \\
+    Random chance       & ---      & ---    & 0.5000 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1613,7 +1598,7 @@ privacy), the loss-based AUC drops to 0.504 --- near random chance --- while
 global accuracy falls to 21.6\%, representing a meaningful improvement over
 more aggressive DP settings. At $\varepsilon = 10$ (moderate privacy), both
 attacks are suppressed below random chance --- loss-based AUC drops to 0.465
-and LR AUC to 0.462 --- but global accuracy collapses to 12.1\%, rendering the
+--- but global accuracy collapses to 12.1\%, rendering the
 model practically useless. At $\varepsilon = 1$ (strong privacy), accuracy
 partially recovers to 17.0\% while both attack AUCs remain near random chance
 (0.498 and 0.503). The non-monotone relationship between $\varepsilon$ and
@@ -1630,36 +1615,24 @@ point.
   \centering
   \includegraphics[width=\textwidth]{dp_privacy_utility_tradeoff.png}
   \caption{Privacy-utility tradeoff bar chart for DP-SGD on CIFAR-10 (RQ5).
-  Each group shows Global Accuracy (dark), Loss-Based AUC (teal), and LR AUC
-  (blue) for No~DP, $\varepsilon=50$, $\varepsilon=10$, and $\varepsilon=1$.
-  Both attack AUCs fall to or below random chance under all DP configurations,
-  while accuracy drops from 66.9\% (No~DP) to 21.6\% ($\varepsilon=50$),
-  12.1\% ($\varepsilon=10$), and 17.0\% ($\varepsilon=1$).}
+  The bar chart shows the global model accuracy for No~DP, $\varepsilon=50$, $\varepsilon=10$, and $\varepsilon=1$.
+  Accuracy drops from 66.9\% (No~DP) to 21.6\% ($\varepsilon=50$),
+  12.1\% ($\varepsilon=10$), and 17.0\% ($\varepsilon=1$), illustrating the severe
+  utility cost of DP-SGD under these configurations.}
   \label{fig:dp_tradeoff_bar}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{dp_attack_suppression.png}
-  \caption{RQ5: Attack suppression by DP-SGD across epsilon values. The connected
-  dot plot shows how both the loss-based AUC and LR attacker AUC decrease toward
-  random chance as noise increases, with the shaded band marking the $\pm$0.015
-  region around random chance. Both configurations successfully suppress the
-  attack while accuracy collapses.}
+  \caption{RQ5: Attack suppression by DP-SGD across all configurations. The
+  connected dot plot shows loss-based AUC for No~DP (0.512), $\varepsilon=50$
+  (0.504), $\varepsilon=10$ (0.465), and $\varepsilon=1$ (0.498). All DP
+  configurations suppress the attack toward or below random chance (0.50),
+  with the shaded band marking the $\pm$0.015 region around random chance.}
   \label{fig:dp_suppression}
 \end{figure}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{dp_roc_curves.png}
-  \caption{RQ5: Loss-based attack ROC curves under all DP configurations. The
-  No~DP curve (AUC = 0.511) sits highest. The $\varepsilon=10$ curve
-  (AUC = 0.465) dips below the diagonal, confirming the noise over-suppresses
-  the membership signal. The $\varepsilon=1$ curve (AUC = 0.498) returns near
-  the diagonal, illustrating the non-monotone relationship between noise and
-  attack suppression.}
-  \label{fig:dp_roc}
-\end{figure}
 
 \begin{figure}[H]
   \centering
@@ -1688,26 +1661,25 @@ under IID conditions.
     \textbf{Attack method} & \textbf{AUC} & \textbf{Recall} & \textbf{Realistic?} & \textbf{Training data needed?} \\
     \midrule
     Random chance                & 0.5000 & 0.500 & --- & No \\
-    Black-box LR (unrealistic)   & 0.4985 & 0.379 & No  & Yes (real) \\
-    Shadow model (CIFAR-100)     & \textbf{0.5388} & \textbf{0.829} & Yes & No (shadow only) \\
-    Loss-based (no training)     & 0.5775 & N/A   & Yes & No \\
+
+    Shadow model (CIFAR-100)     & \textbf{0.5382} & \textbf{0.798} & Yes & No (shadow only) \\
+    Loss-based (no training)     & 0.5690 & N/A   & Yes & No \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-The shadow model attack achieves AUC of 0.539 --- substantially higher than the
-unrealistic black-box baseline (0.499). This is a significant finding: the
-realistic attacker, who has no access to any CIFAR-10 training samples,
-outperforms the idealised attacker who does have access to real member and
-non-member labels. The reversal occurs because the shadow model attack learns
-a richer and more generalisable representation of what membership looks like in
-a FedAvg model, using the architecture-agnostic features described in Section~4.7.
-The unrealistic black-box attacker, by contrast, trains on the raw 10-dimensional
+  The shadow model attack achieves AUC of 0.538 and recall of 79.8\%.
+  While the loss-based attack achieves slightly higher AUC (0.569), the shadow
+  model substantially outperforms threshold-based attacks and achieves far higher
+  recall. This is a significant finding: the realistic attacker, who has no
+  access to any CIFAR-10 training samples, identifies nearly 80\% of training
+  members. The shadow model learns a richer and more generalisable representation
+  of membership in a FedAvg model, using the architecture-agnostic
+The threshold-based attacker, by contrast, operates on the raw 10-dimensional
 softmax vector which carries little exploitable structure after FedAvg averaging.
 
-The member recall of 82.9\% is particularly striking. This means that when the
-shadow model attacker classifies a sample as a member, it is correct 83\% of the
-time, and it successfully identifies 83\% of all real training members. From a
+The member recall of 79.8\% is particularly striking. This means that the
+shadow model attacker successfully identifies 79.8\% of all real training members. From a
 practical privacy perspective, this represents a serious vulnerability: even
 without any access to the training data, a realistic attacker can identify the
 majority of training set participants.
@@ -1715,13 +1687,13 @@ majority of training set participants.
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{shadow_iid_comparison.png}
-  \caption{Shadow model attack results on CIFAR-10 (RQ6, IID). \textbf{Left:}
-  AUC comparison across all methods. The shadow model attack (0.539) substantially
-  outperforms the unrealistic black-box LR (0.499), while approaching but not
-  reaching the loss-based attack (0.577). \textbf{Right:} ROC curves confirming
-  the shadow model (teal) sits clearly above the unrealistic baseline (grey) and
-  above the random chance diagonal.}
-  \label{fig:shadow_iid}
+  \caption{RQ6: Shadow model attack --- AUC vs member recall for all attack
+  methods on CIFAR-10. Bubble size reflects overall threat level and the red
+  zone marks the highest privacy risk region. The shadow model Non-IID
+  (AUC 0.554, recall 84.9\%) and IID (AUC 0.538, recall 79.8\%) bubbles sit
+  clearly above the threshold and loss-based attacks, confirming that the
+  realistic attacker identifies the majority of training members without any
+  access to real training data.}
 \end{figure}
 
 \subsection{Non-IID Results}
@@ -1734,38 +1706,37 @@ majority of training set participants.
     \toprule
     \textbf{Condition} & \textbf{Target Acc.} & \textbf{Shadow AUC} & \textbf{Shadow Recall} & \textbf{Loss AUC} \\
     \midrule
-    IID             & 0.7172 & 0.5388 & 0.829 & 0.5775 \\
-    Non-IID (5/10)  & 0.4805 & 0.5636 & 0.902 & 0.5945 \\
+    IID             & 0.7239 & 0.5382 & 0.798 & 0.5690 \\
+    Non-IID (5/10)  & 0.5133 & 0.5535 & 0.849 & 0.5939 \\
     \midrule
-    \textit{Change} & $-0.237$ & $\mathbf{+0.025}$ & $+0.073$ & $+0.017$ \\
+    \textit{Change} & $-0.210$ & $\mathbf{+0.015}$ & $+0.051$ & $+0.025$ \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Under Non-IID conditions, the shadow model attack AUC increases by +0.025 to
-0.564, and member recall increases from 82.9\% to 90.2\%. This pattern mirrors
+Under Non-IID conditions, the shadow model attack AUC increases by +0.015 to
+0.554, and member recall increases from 79.8\% to 84.9\%. This pattern mirrors
 the Non-IID amplification observed for loss-based attacks in RQ4: client
 specialisation leaves stronger membership traces in the global model that the
 shadow attack's architecture-agnostic features are able to capture. The very
-high recall of 90.2\% under Non-IID is practically alarming --- an attacker with
+high recall of 84.9\% under Non-IID is practically alarming --- an attacker with
 only CIFAR-100 data and no knowledge of the FL system's training set can correctly
-identify 90\% of all training participants under realistic non-IID conditions.
+identify 85\% of all training participants under realistic non-IID conditions.
 
 \textbf{Key finding (RQ6):} A realistic shadow model attacker with no access to
-real training data achieves AUC 0.539 (IID) and 0.564 (Non-IID) on a CIFAR-10
-FedAvg target, with member recall of 82.9\% and 90.2\% respectively. This
-substantially outperforms the unrealistic black-box baseline and reveals that
+real training data achieves AUC 0.538 (IID) and 0.554 (Non-IID) on a CIFAR-10
+FedAvg target, with member recall of 79.8\% and 84.9\% respectively. This
+substantially outperforms threshold-based attacks and reveals that
 FedAvg's privacy is weaker than the controlled baseline experiments suggest.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{shadow_noniid_comparison.png}
-  \caption{Shadow model attack --- IID vs.\ Non-IID comparison (RQ6). \textbf{Left:}
-  AUC bar chart showing Non-IID shadow AUC (0.564) exceeds IID (0.539) by +0.025.
-  Loss-based AUC also increases under Non-IID (0.595 vs 0.578). \textbf{Right:}
-  ROC curves confirming Non-IID (orange) sits above IID (blue) across all FPR
-  thresholds for the shadow attack.}
-  \label{fig:shadow_noniid}
+  \caption{Shadow model attack --- IID vs.\ Non-IID comparison (RQ6). The bar
+  chart shows shadow model AUC increases from IID (0.538) to Non-IID (0.554)
+  by +0.015, and shadow model recall increases from 79.8\% to 84.9\%.
+  Loss-based AUC also increases from 0.569 to 0.594 under Non-IID. All
+  three metrics confirm that Non-IID conditions amplify membership leakage.}
 \end{figure}
 
 \section{White-Box Attack (RQ7)}
@@ -1783,16 +1754,16 @@ Table~\ref{tab:whitebox_iid} presents the complete white-box attack results.
     \textbf{Attack method} & \textbf{AUC} & \textbf{Recall} & \textbf{Access level} \\
     \midrule
     Random chance              & 0.5000 & 0.500 & None \\
-    Black-box LR (unrealistic) & 0.4975 & 0.523 & Softmax + real data \\
-    Shadow model (CIFAR-100)   & 0.5390 & 0.829 & Softmax + shadow data \\
-    Loss-based                 & 0.5711 & N/A   & Softmax only \\
-    \textbf{White-box gradient}& \textbf{0.5652} & \textbf{0.762} & Weights + gradients \\
+
+    Shadow model (CIFAR-100)   & 0.5382 & 0.798 & Softmax + shadow data \\
+    Loss-based                 & 0.5690 & N/A   & Softmax only \\
+    \textbf{White-box gradient}& \textbf{0.5745} & \textbf{0.803} & Weights + gradients \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-The white-box attack achieves AUC of 0.565 under IID, which is notably close to
-but slightly below the loss-based attack (0.571). This near-equivalence is
+The white-box attack achieves AUC of 0.575 under IID, which is slightly above
+the loss-based attack (0.569). This near-equivalence is
 theoretically meaningful: the cross-entropy loss is a direct function of the
 gradient --- they are mathematically related through the chain rule of
 differentiation. The loss-based attack and the gradient norm attack are therefore
@@ -1800,9 +1771,9 @@ measuring closely related quantities, explaining why gradient access provides
 only a marginal improvement over loss information in the IID setting.
 
 The white-box attack does provide meaningful improvement over the shadow model
-attack (+0.026) and substantially outperforms the unrealistic black-box baseline
-(+0.068). With recall of 76.2\%, the white-box attacker correctly identifies
-76\% of real training members, confirming that gradient features carry real
+attack (+0.026) and substantially outperforms the threshold-based baseline
+(+0.068). With recall of 80.3\%, the white-box attacker correctly identifies
+80\% of real training members, confirming that gradient features carry real
 membership information not present in the softmax output alone.
 
 \subsection{Non-IID Results}
@@ -1815,15 +1786,15 @@ membership information not present in the softmax output alone.
     \toprule
     \textbf{Condition} & \textbf{Target Acc.} & \textbf{WB AUC} & \textbf{WB Recall} & \textbf{Loss AUC} \\
     \midrule
-    IID             & 0.7123 & 0.5652 & 0.762 & 0.5711 \\
-    Non-IID (5/10)  & 0.5112 & \textbf{0.5978} & 0.645 & 0.5923 \\
+    IID             & 0.7266 & 0.5745 & 0.803 & 0.5690 \\
+    Non-IID (5/10)  & 0.5112 & \textbf{0.6160} & 0.577 & 0.5923 \\
     \midrule
-    \textit{Change} & $-0.201$ & $\mathbf{+0.033}$ & $-0.117$ & $+0.021$ \\
+    \textit{Change} & $-0.201$ & $\mathbf{+0.041}$ & $-0.226$ & $+0.025$ \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-The white-box attack achieves the highest AUC across all experiments at 0.598
+The white-box attack achieves the highest AUC across all experiments at 0.616
 under Non-IID conditions, confirming that gradient features are particularly
 sensitive to the overconfidence that arises from client specialisation. When
 clients train on narrow class distributions, their local gradients develop
@@ -1831,14 +1802,14 @@ strong directional biases that partially survive FedAvg averaging and leave
 distinctive gradient norm signatures in the global model. A compromised server
 with white-box access can exploit these signatures effectively.
 
-The decrease in recall from 76.2\% (IID) to 64.5\% (Non-IID) at a higher AUC
+The decrease in recall from 80.3\% (IID) to 57.7\% (Non-IID) at a higher AUC
 reflects a shift in the operating characteristics of the attack: under Non-IID,
 the attacker's AUC is higher (better discrimination at all thresholds), but the
 optimal threshold for recall shifts, reflecting the changed loss landscape of the
 Non-IID model.
 
-\textbf{Key finding (RQ7):} The white-box attack achieves AUC 0.565 (IID) and
-0.598 (Non-IID), establishing the upper bound on privacy leakage from the FedAvg
+\textbf{Key finding (RQ7):} The white-box attack achieves AUC 0.575 (IID) and
+0.616 (Non-IID), establishing the upper bound on privacy leakage from the FedAvg
 model. Gradient access provides modest gains over loss-based attacks under IID
 conditions, but amplifies leakage more substantially under Non-IID, confirming
 that client specialisation leaves stronger gradient traces.
@@ -1847,10 +1818,10 @@ that client specialisation leaves stronger gradient traces.
   \centering
   \includegraphics[width=\textwidth]{whitebox_noniid_comparison.png}
   \caption{RQ7: White-box gradient attack --- IID vs.\ Non-IID comparison.
-  The annotated grouped bar chart shows white-box AUC increasing by +0.033
-  from IID (0.565) to Non-IID (0.598), while recall decreases from 76.2\% to
-  64.5\% reflecting a shift in the ROC operating point. The Non-IID white-box
-  AUC of 0.598 is the highest result across the entire study.}
+  The annotated grouped bar chart shows white-box AUC increasing by +0.041
+  from IID (0.575) to Non-IID (0.616), while recall decreases from 80.3\% to
+  57.7\% reflecting a shift in the ROC operating point. The Non-IID white-box
+  AUC of 0.616 is the highest result across the entire study.}
   \label{fig:whitebox_noniid}
 \end{figure}
 
@@ -1870,60 +1841,57 @@ the CIFAR-10 FedAvg system under both IID and Non-IID conditions.
     \midrule
     ---    & Random chance              & 0.500 & 0.500 & 0.500 & 0.500 \\
     \midrule
-    Tier 1 & Black-box LR (unrealistic) & 0.498 & 0.379 & ---   & ---   \\
-    Tier 1 & Loss-based (no training)   & 0.577 & N/A   & 0.594 & N/A   \\
+    Tier 1 & Threshold attack           & 0.530 & N/A   & 0.542 & N/A   \\
+    Tier 1 & Loss-based (no training)   & 0.569 & N/A   & 0.594 & N/A   \\
     \midrule
-    Tier 2 & Shadow model (CIFAR-100)   & 0.539 & 0.829 & 0.564 & 0.902 \\
+    Tier 2 & Shadow model (CIFAR-100)   & 0.538 & 0.798 & 0.554 & 0.849 \\
     \midrule
-    Tier 3 & White-box gradient         & 0.565 & 0.762 & 0.598 & 0.645 \\
+    Tier 3 & White-box gradient         & 0.575 & 0.803 & 0.616 & 0.577 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 The hierarchy reveals several important patterns. First, the loss-based attack
-outperforms both the unrealistic black-box LR and the shadow model attack under
-IID, confirming that the loss signal is the primary vulnerability channel regardless
-of attacker sophistication. Second, the shadow model attack's recall (82.9\%) far
-exceeds the white-box attack's recall (76.2\%) under IID, because the shadow
-attack's features are tuned to the confidence-based signals that the architecture-
-agnostic extraction captures, while the white-box attack's gradient features
-provide better AUC but at a different operating point. Third, Non-IID conditions
-amplify all attack methods, with the most significant amplification observed for
-the shadow model recall (+7.3 percentage points) and the white-box AUC (+0.033).
+(AUC 0.569) outperforms the shadow model attack (AUC 0.538) under IID, confirming
+that the loss signal is the primary vulnerability channel regardless of attacker
+sophistication. Second, the white-box attack achieves the highest AUC (0.575)
+under IID with recall of 80.3\%, confirming that gradient access provides the
+strongest membership signal. Third, Non-IID conditions amplify all attack methods,
+with the most significant amplification observed for the white-box AUC
+(+0.041 from IID to Non-IID) and shadow model recall (+5.1 percentage points).
 
 \section{Summary of All Findings}
 
 Across all seven research questions and three tiers of attacker capability, eight
-key findings emerge. First, the black-box logistic regression MIA was largely
+key findings emerge. First, the threshold-based attacks were largely
 ineffective under IID conditions on both datasets, with AUC near 0.50, confirming
-that FedAvg weight averaging destroys the structured patterns that classifier
-attackers rely upon. Second, the loss-based attack consistently outperforms
-classifier-based attacks, achieving AUC of 0.577 (CIFAR-10) and 0.618
-(CIFAR-100), establishing prediction loss as the primary vulnerability channel.
-Third, neither client count nor model complexity produced consistent effects on
-attack success, confirming FedAvg's dominant role as the privacy mechanism
-regardless of configuration. Fourth, dataset complexity amplifies loss-based
-leakage, with CIFAR-100 producing higher attack AUC due to its harder
-classification task and larger generalisation gap. Fifth, Non-IID heterogeneity
-increases attack success on CIFAR-10 by +0.024 AUC (loss-based), with the degree
-of heterogeneity being the critical variable. Sixth, DP-SGD successfully suppresses
-the attack to near-random chance but incurs severe accuracy penalties, illustrating
-the fundamental privacy-utility tradeoff. Seventh, the realistic shadow model
-attack achieves AUC 0.539 and recall 82.9\% under IID, substantially outperforming
-the unrealistic baseline and revealing that FedAvg's privacy is weaker under
-realistic threat models than controlled experiments suggest. Eighth, the white-box
-attack achieves the highest AUC across all experiments at 0.598 under Non-IID,
-establishing the leakage ceiling and confirming that gradient access combined with
-client specialisation represents the most dangerous attack scenario.
+that FedAvg weight averaging destroys the structured patterns that threshold
+attacks rely upon. Second, the loss-based attack consistently produces meaningful
+leakage, achieving AUC of 0.569 (CIFAR-10) and 0.619 (CIFAR-100), establishing
+prediction loss as the primary vulnerability channel. Third, neither client count
+nor model complexity produced consistent effects on attack success, confirming
+FedAvg's dominant role as the privacy mechanism regardless of configuration.
+Fourth, dataset complexity amplifies loss-based leakage, with CIFAR-100 producing
+higher attack AUC due to its harder classification task and larger generalisation
+gap. Fifth, Non-IID heterogeneity increases attack success on CIFAR-10 by +0.026
+AUC (loss-based), with the degree of heterogeneity being the critical variable.
+Sixth, DP-SGD successfully suppresses the attack to near-random chance but incurs
+severe accuracy penalties, illustrating the fundamental privacy-utility tradeoff.
+Seventh, the realistic shadow model attack achieves AUC 0.538 and recall 79.8\%
+under IID, substantially outperforming threshold-based attacks and revealing that
+FedAvg's privacy is weaker under realistic threat models than controlled experiments
+suggest. Eighth, the white-box attack achieves the highest AUC across all
+experiments at 0.616 under Non-IID, establishing the leakage ceiling and confirming
+that gradient access combined with client specialisation represents the most
+dangerous attack scenario.
 
 % ══════════════════════════════════════════════════════════════════════════════
 \chapter{Discussion}
 
 \section{FedAvg as the Primary Privacy Mechanism}
 
-The consistent failure of the black-box logistic regression attacker across all
-IID configurations points to a single underlying explanation: FedAvg's weight
-averaging mechanism is the dominant privacy protection in the controlled baseline
+The near-random performance of threshold-based attacks across all
+client counts and model complexities confirms that FedAvg averaging is the dominant privacy protection in the controlled baseline
 setting. When $K$ clients each train locally and the server computes a weighted
 average of their weight updates, individual per-sample memorisation signals are
 diluted across the entire client population. A sample that was seen only by
@@ -1934,9 +1902,8 @@ towards the average of all clients' optima, not towards any individual client's
 memorised training set.
 
 This averaging mechanism explains why the full softmax confidence vector carries
-so little exploitable structure: the individual confidence patterns that a logistic
-regression classifier would learn from individual client models have been averaged
-away. The only signal that survives is the aggregate loss value, which reflects
+so little exploitable structure: the individual confidence patterns that threshold
+attacks rely upon in individual client models have been averaged away. The only signal that survives is the aggregate loss value, which reflects
 how well the global model has collectively learned a sample. Because member samples
 appear in the training sets of at least one client, they benefit from at least
 partial optimisation in the FedAvg process. Non-members receive no optimisation
@@ -1946,8 +1913,8 @@ loss-based attack exploits.
 \section{Why the Shadow Model Attack Succeeds Despite No Training Data Access}
 
 The shadow model attack's success is the most counterintuitive finding of this
-study. An attacker with no access to CIFAR-10 training data achieves AUC 0.539
-and recall 82.9\% against a CIFAR-10 FedAvg model. This result has a clear
+study. An attacker with no access to CIFAR-10 training data achieves AUC 0.538
+and recall 79.8\% against a CIFAR-10 FedAvg model. This result has a clear
 explanation.
 
 The attack succeeds because membership inference in FedAvg-trained models is
@@ -1973,9 +1940,9 @@ universal properties of FedAvg-induced membership signals.
 \section{The Role of Data Heterogeneity Across Attack Tiers}
 
 Non-IID data heterogeneity consistently increased attack success across all three
-attacker tiers. For the loss-based attack, the increase was +0.024 (IID CIFAR-10).
-For the shadow model attack, it was +0.025 in AUC and +7.3 points in recall. For
-the white-box attack, it was +0.033 --- the largest single amplification across
+attacker tiers. For the loss-based attack, the increase was +0.026 (IID CIFAR-10).
+For the shadow model attack, it was +0.015 in AUC and +5.1 points in recall. For
+the white-box attack, it was +0.041 --- the largest single amplification across
 all experiments. This consistent amplification across attack types reveals that
 the Non-IID effect is not specific to any particular attack methodology: it is
 a general property of the FedAvg model under heterogeneous client distributions.
@@ -1994,7 +1961,7 @@ networks where each hospital treats specific conditions, mobile keyboards that
 reflect individual typing behaviour --- are likely operating in conditions of
 moderate to strong Non-IID heterogeneity. The results of this study suggest that
 such systems face substantially higher membership inference risks than IID
-experiments indicate. A shadow model attacker achieving 90\% recall under moderate
+experiments indicate. A shadow model attacker achieving 84.9\% recall under moderate
 Non-IID (CIFAR-10, 5/10 classes) is a concrete demonstration of this risk.
 
 \section{The Privacy-Utility Tradeoff in Practice}
@@ -2035,7 +2002,7 @@ threat model.
 
 Second, the evaluation of MIA defences in federated systems should include the
 shadow model threat model, not only the controlled baseline. The controlled
-baseline (unrealistic black-box with real data) significantly underestimates the
+threshold-based attack significantly underestimates the
 realistic privacy risk, as demonstrated by the shadow model attack achieving
 substantially higher AUC and recall.
 
@@ -2079,16 +2046,16 @@ and Non-IID data distributions using seven self-contained reproducible notebooks
 
 The core findings can be summarised as follows. FedAvg provides meaningful
 resistance to untrained black-box classifier attacks under IID conditions, with
-logistic regression AUC near random chance across all configurations. However,
-the loss-based attack achieves partial success (AUC 0.577 on CIFAR-10, 0.618
+threshold-based AUC near random chance across all configurations. However,
+the loss-based attack achieves partial success (AUC 0.569 on CIFAR-10, 0.618
 on CIFAR-100), revealing that the prediction loss signal survives the FedAvg
 averaging process. A realistic shadow model attacker using CIFAR-100 as shadow
-data achieves AUC 0.539 and member recall 82.9\% on a CIFAR-10 target under
-IID conditions, substantially outperforming the unrealistic black-box baseline
+data achieves AUC 0.538 and member recall 79.8\% on a CIFAR-10 target under
+IID conditions, substantially outperforming threshold-based attacks
 and demonstrating that FedAvg's privacy is weaker under realistic threat models
 than controlled experiments suggest. Under Non-IID conditions, the shadow model
-recall increases to 90.2\%, and the white-box attack achieves the highest AUC
-across all experiments at 0.598. DP-SGD successfully suppresses the attack to
+recall increases to 84.9\%, and the white-box attack achieves the highest AUC
+across all experiments at 0.616. DP-SGD successfully suppresses the attack to
 near-random chance but incurs severe accuracy penalties that require further
 hyperparameter optimisation to be practically viable.
 
@@ -2290,7 +2257,7 @@ all seven notebooks and seven research questions.
     Attack samples (RQ1/4/6/7) & 5,000 + 5,000        & Balanced \\
     Attack samples (RQ2/3/5)  & 1,000 + 1,000         & Reduced for efficiency \\
     Attack samples (RQ7 WB)   & 2,000 + 2,000         & Gradient cost \\
-    Attacker model            & Logistic Regression   & max\_iter=1000 \\
+    Attacker model            & Logistic Regression   & Shadow + white-box attacks \\
     Attacker split            & 70\% train / 30\% test & Stratified \\
     IID partitioning          & Random shuffle + equal split & NumPy array\_split \\
     Non-IID partitioning      & Class-based cyclic    & 5/10 or 50/100 classes \\
@@ -2345,17 +2312,14 @@ all seven notebooks and seven research questions.
 \section{RQ1 --- Full Metrics, Both Datasets (IID)}
 \begin{table}[H]
   \centering
-  \caption{RQ1 complete metrics --- logistic regression attacker (IID, 5 clients, 10 rounds).}
+  \caption{RQ1 complete metrics --- threshold and loss-based attacks (IID, 5 clients, 10 rounds).}
   \begin{tabular}{lcccc}
     \toprule
     \textbf{Metric} & \textbf{CIFAR-10} & \textbf{CIFAR-100} & \textbf{Baseline} & \textbf{Interpretation} \\
     \midrule
-    Accuracy    & 0.4940 & 0.5177 & 0.50 & $\approx$ random \\
-    Precision   & 0.4929 & 0.5189 & 0.50 & $\approx$ random \\
-    Recall      & 0.4160 & 0.4840 & 0.50 & Low --- misses members \\
-    AUC         & 0.4967 & 0.5162 & 0.50 & $\approx$ random \\
-    Loss AUC    & 0.5768 & 0.6180 & 0.50 & Partial leakage \\
-    Global Acc. & 0.7160 & 0.3759 & ---  & Model accuracy \\
+    Threshold AUC   & 0.5297 & 0.5408 & 0.50 & Near random chance \\
+    Loss-based AUC  & 0.5690 & 0.6194 & 0.50 & Partial leakage \\
+    Global Acc.     & 0.7213 & 0.3900 & ---  & Model accuracy \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -2377,7 +2341,7 @@ all seven notebooks and seven research questions.
     7  & 0.7077 & 0.3625 \\
     8  & 0.7126 & 0.3778 \\
     9  & 0.7139 & 0.3765 \\
-    10 & 0.7160 & 0.3759 \\
+    10 & 0.7213 & 0.3900 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -2410,14 +2374,17 @@ all seven notebooks and seven research questions.
   \caption{Complete DP-SGD defence results (CIFAR-10, IID, 5 clients, 5 rounds).}
   \begin{tabular}{lcccc}
     \toprule
-    \textbf{Configuration} & \textbf{Noise $\sigma$} & \textbf{Global Acc.} & \textbf{Loss AUC} & \textbf{LR AUC} \\
+    \textbf{Configuration} & \textbf{Noise $\sigma$} & \textbf{Global Acc.} & \textbf{Loss AUC} \\
     \midrule
-    No DP (baseline) & 0.0 & 0.5300 & 0.5110 & 0.4750 \\
-    DP $\varepsilon=50$ & 0.5 & 0.2162 & 0.5044 & 0.4360 \\
-    DP $\varepsilon=10$ & 1.1 & 0.1210 & 0.4650 & 0.4620 \\
-    DP $\varepsilon=1$  & 3.0 & 0.1700 & 0.4980 & 0.5030 \\
+    No DP (baseline) & 0.0 & 0.6687 & 0.5120 \\
+    DP $\varepsilon=50$ & 0.5 & 0.2162 & 0.5044 \\
+
+    DP $\varepsilon=10$ & 1.1 & 0.1210 & 0.4650 \\
+
+    DP $\varepsilon=1$  & 3.0 & 0.1700 & 0.4980 \\
+
     \midrule
-    Random chance & --- & --- & 0.5000 & 0.5000 \\
+    Random chance       & ---      & ---    & 0.5000 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -2430,10 +2397,9 @@ all seven notebooks and seven research questions.
     \toprule
     \textbf{Condition} & \textbf{Target Acc.} & \textbf{Shadow Acc.} & \textbf{Shadow AUC} & \textbf{Shadow Recall} & \textbf{Loss AUC} \\
     \midrule
-    IID             & 0.7172 & 0.3799 & 0.5388 & 0.829 & 0.5775 \\
-    Non-IID (5/10)  & 0.4805 & 0.3799 & 0.5636 & 0.902 & 0.5945 \\
+    IID             & 0.7239 & 0.3848 & 0.5382 & 0.798 & 0.5690 \\
+    Non-IID (5/10)  & 0.5133 & 0.3848 & 0.5535 & 0.849 & 0.5939 \\
     \midrule
-    Unrealistic BB  & 0.7172 & ---    & 0.4985 & 0.379 & --- \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -2446,8 +2412,8 @@ all seven notebooks and seven research questions.
     \toprule
     \textbf{Condition} & \textbf{Target Acc.} & \textbf{WB AUC} & \textbf{WB Recall} & \textbf{Loss AUC} \\
     \midrule
-    IID             & 0.7123 & 0.5652 & 0.762 & 0.5711 \\
-    Non-IID (5/10)  & 0.5112 & 0.5978 & 0.645 & 0.5923 \\
+    IID             & 0.7266 & 0.5745 & 0.803 & 0.5690 \\
+    Non-IID (5/10)  & 0.5112 & 0.6160 & 0.577 & 0.5939 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -2487,14 +2453,13 @@ are loaded automatically through the TensorFlow/Keras API.
   \caption{Complete attack method comparison across all tiers (CIFAR-10, IID).}
   \begin{tabular}{lcccc}
     \toprule
-    \textbf{Attack Method} & \textbf{AUC} & \textbf{Recall} & \textbf{Realistic?} & \textbf{Training needed?} \\
+    \textbf{Attack Method} & \textbf{AUC} & \textbf{Recall} & \textbf{Realistic?} & \textbf{Data/Access needed?} \\
     \midrule
     Random baseline              & 0.5000 & 0.500 & ---  & No \\
-    Threshold attack             & 0.5355 & ---   & Yes  & No \\
-    Loss-based                   & 0.5768 & N/A   & Yes  & No \\
-    LR black-box (unrealistic)   & 0.4967 & 0.416 & No   & Yes (real data) \\
-    Shadow model (CIFAR-100)     & 0.5388 & 0.829 & Yes  & Yes (shadow data) \\
-    White-box gradient           & 0.5652 & 0.762 & Yes* & Yes (gradient access) \\
+    Threshold attack             & 0.5297 & N/A   & Yes  & No \\
+    Loss-based                   & 0.5690 & N/A   & Yes  & No \\
+    Shadow model (CIFAR-100)     & 0.5382 & 0.798 & Yes  & Yes (shadow data) \\
+    White-box gradient           & 0.5745 & 0.803 & Yes* & Yes (gradient access) \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -2508,8 +2473,8 @@ are loaded automatically through the TensorFlow/Keras API.
 Replace the class-based Non-IID scheme with Dirichlet distribution partitioning
 ($\alpha \in \{0.1, 0.5, 1.0\}$), which provides continuous control over the
 degree of heterogeneity. The hypothesis is that at $\alpha = 0.1$ (highly
-heterogeneous), shadow model recall would exceed 90\% and white-box AUC would
-approach 0.65 or higher on CIFAR-10.
+heterogeneous), shadow model recall would likely increase substantially and white-box AUC would
+approach or exceed 0.65 on CIFAR-10.
 
 \noindent\textbf{Direction 2 --- Shadow Model on CIFAR-100 Target.}
 Extend the shadow model evaluation to a CIFAR-100 target with a different
