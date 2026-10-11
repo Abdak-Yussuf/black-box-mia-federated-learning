@@ -1,15 +1,12 @@
 {
-  "target_global_acc_iid": 0.7246000170707703,
-  "target_global_acc_noniid": 0.49790000915527344,
-  "shadow_global_acc": 0.3840999901294708,
-  "unrealistic_auc": 0.5230222222222223,
-  "unrealistic_recall": 0.6666666666666666,
-  "shadow_auc_iid": 0.53984644,
-  "shadow_recall_iid": 0.7854,
-  "shadow_auc_noniid": 0.54870028,
-  "shadow_recall_noniid": 0.8186,
-  "loss_auc_iid": 0.57195068,
-  "loss_auc_noniid": 0.59192974,
-  "delta_shadow_vs_unrealistic": 0.01682421777777776,
-  "delta_noniid_vs_iid": 0.008853840000000002
+  "target_global_acc_iid": 0.7239000201225281,
+  "target_global_acc_noniid": 0.5133000016212463,
+  "shadow_global_acc": 0.384799987077713,
+  "shadow_auc_iid": 0.53817532,
+  "shadow_recall_iid": 0.7984,
+  "shadow_auc_noniid": 0.5535426800000001,
+  "shadow_recall_noniid": 0.8488,
+  "loss_auc_iid": 0.57675494,
+  "loss_auc_noniid": 0.59393148,
+  "delta_noniid_vs_iid": 0.015367360000000052
 }
