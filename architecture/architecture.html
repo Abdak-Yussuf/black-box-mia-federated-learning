@@ -283,10 +283,9 @@
         <div class="panel">
           <div class="panel-title">Attack Results — CIFAR-10</div>
           <ul>
-            <li>Random baseline &nbsp;<strong>AUC 0.497</strong></li>
-            <li>Threshold attack &nbsp;<strong>AUC 0.536</strong></li>
-            <li>Loss-based (best) &nbsp;<strong style="color:#DC2626">AUC 0.534</strong></li>
-            <li>Logistic Regression &nbsp;<strong>AUC 0.492</strong></li>
+            <li>Random baseline &nbsp;<strong>AUC 0.500</strong></li>
+            <li>Threshold attack &nbsp;<strong>AUC 0.530</strong></li>
+            <li>Loss-based (best) &nbsp;<strong style="color:#DC2626">AUC 0.569</strong></li>
           </ul>
         </div>
         <div class="panel">
@@ -302,7 +301,7 @@
       <div class="result-row" style="margin-top:12px">
         <div class="result-item">
           <div class="ri-method">RQ1 — Baseline</div>
-          <div class="ri-val val-slate">LR fails · Loss leaks</div>
+          <div class="ri-val val-slate">Threshold near 0.50 · Loss leaks</div>
         </div>
         <div class="result-item">
           <div class="ri-method">RQ2 — Clients (2→10)</div>
@@ -335,11 +334,11 @@
         <div class="result-row">
           <div class="result-item">
             <div class="ri-method">No DP</div>
-            <div class="ri-val val-red">Acc 67% · AUC 0.516</div>
+            <div class="ri-val val-red">Acc 66.9% · AUC 0.512</div>
           </div>
           <div class="result-item">
             <div class="ri-method">ε = 50</div>
-            <div class="ri-val val-teal" style="color:#0F766E">Acc TBD · AUC TBD</div>
+            <div class="ri-val val-teal" style="color:#0F766E">Acc 21.6% · AUC 0.504</div>
           </div>
           <div class="result-item">
             <div class="ri-method">ε = 10</div>
@@ -366,20 +365,15 @@
           <li>Shadow dataset: CIFAR-100 — same domain, completely different classes</li>
           <li>Attacker trains own FL model on CIFAR-100 · no CIFAR-10 training data used</li>
           <li>Same 6 features as black-box · only data source differs</li>
-          <li>Controlled comparison: shadow vs black-box with identical features</li>
-        </ul>
+                  </ul>
         <div class="result-row">
           <div class="result-item">
-            <div class="ri-method">Black-box LR (real data)</div>
-            <div class="ri-val val-slate">AUC 0.523 · Recall 66.7%</div>
-          </div>
-          <div class="result-item">
             <div class="ri-method">Shadow IID</div>
-            <div class="ri-val val-red">AUC 0.540 · Recall 78.5%</div>
+            <div class="ri-val val-red">AUC 0.538 · Recall 79.8%</div>
           </div>
           <div class="result-item">
             <div class="ri-method">Shadow Non-IID</div>
-            <div class="ri-val val-red">AUC 0.549 · Recall 81.9%</div>
+            <div class="ri-val val-red">AUC 0.554 · Recall 84.9%</div>
           </div>
         </div>
       </div>
@@ -400,15 +394,15 @@
         <div class="result-row">
           <div class="result-item">
             <div class="ri-method">White-box IID</div>
-            <div class="ri-val val-red">AUC 0.615 · Recall 85.2%</div>
+            <div class="ri-val val-red">AUC 0.575 · Recall 80.3%</div>
           </div>
           <div class="result-item">
             <div class="ri-method">White-box Non-IID</div>
-            <div class="ri-val val-red">AUC 0.613 · Recall 71.4%</div>
+            <div class="ri-val val-red">AUC 0.616 · Recall 57.7%</div>
           </div>
           <div class="result-item">
             <div class="ri-method">vs Loss-based</div>
-            <div class="ri-val val-navy">+0.039 advantage</div>
+            <div class="ri-val val-navy">+0.006 IID · +0.051 Non-IID</div>
           </div>
         </div>
       </div>
