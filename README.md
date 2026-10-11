@@ -16,10 +16,10 @@ The central question: **can an adversary determine whose data was used to train 
 
 ## Key Findings
 
-- FedAvg resists trained black-box classifier attacks under IID conditions — logistic regression AUC near 0.50 across all configurations
-- The primary vulnerability channel is **prediction loss**, not confidence vector patterns — loss-based attack achieves AUC 0.577 (CIFAR-10) and 0.618 (CIFAR-100)
-- A realistic **shadow model attack** using CIFAR-100 as shadow data (no real training data access) achieves AUC 0.540 and member recall **78.5%** — outperforming the unrealistic baseline
-- The **white-box gradient attack** achieves the highest AUC of 0.615 under IID — confirming gradient access provides substantially more information than softmax outputs alone
+- FedAvg resists threshold-based black-box attacks under IID conditions — threshold AUC near 0.53 across all configurations
+- The primary vulnerability channel is **prediction loss**, not confidence vector patterns — loss-based attack achieves AUC 0.569 (CIFAR-10) and 0.619 (CIFAR-100)
+- A realistic **shadow model attack** using CIFAR-100 as shadow data (no real training data access) achieves AUC 0.538 and member recall **79.8%** — substantially outperforming threshold-based attacks
+- The **white-box gradient attack** achieves the highest AUC of 0.575 (IID) and 0.616 (Non-IID) — confirming gradient access provides the strongest membership signal
 - **Non-IID data heterogeneity** consistently amplifies all attack types — loss AUC increases by +0.026 on CIFAR-10 under moderate Non-IID
 - **DP-SGD** successfully suppresses attacks to near-random chance but incurs severe accuracy costs — hyperparameter tuning required for a practical operating point
 
@@ -27,13 +27,13 @@ The central question: **can an adversary determine whose data was used to train 
 
 ## Three-Tier Attacker Capability Hierarchy
 
-| Tier | Attack | IID AUC | Non-IID AUC | Realistic? |
-|---|---|---|---|---|
-| — | Random chance | 0.500 | 0.500 | — |
-| T1 | Black-box LR (unrealistic) | ~0.492 | — | No |
-| T1 | Loss-based (no training) | 0.577 | 0.565 | Yes |
-| T3 | Shadow model (CIFAR-100) | 0.540 | 0.549 | Yes |
-| T3 | White-box gradient | 0.615 | 0.613 | Yes* |
+| Tier | Attack | IID AUC | IID Recall | Non-IID AUC | Realistic? |
+|---|---|---|---|---|---|
+| — | Random chance | 0.500 | 0.500 | 0.500 | — |
+| T1 | Threshold attack | 0.530 | N/A | 0.542 | Yes |
+| T1 | Loss-based (no training) | 0.569 | N/A | 0.565 | Yes |
+| T2 | Shadow model (CIFAR-100) | 0.538 | 79.8% | 0.554 | Yes |
+| T3 | White-box gradient | 0.575 | 80.3% | 0.616 | Yes* |
 
 *Realistic in the compromised server threat model.
 
@@ -54,6 +54,7 @@ The central question: **can an adversary determine whose data was used to train 
 ├── figures/                              # All generated figures (PNG)
 ├── results/                              # All result files (JSON)
 ├── report/                               # Thesis LaTeX source
+├── architecture/                         # System architecture diagram
 ├── Papers/                               # Reference papers
 └── README.md
 ```
@@ -63,7 +64,7 @@ The central question: **can an adversary determine whose data was used to train 
 ## Research Questions
 
 **Tier 1 — Controlled Black-Box Experiments**
-- **RQ1:** Can a black-box MIA successfully infer training membership against a FedAvg model?
+- **RQ1:** Can a query-only MIA successfully infer training membership against a FedAvg model?
 - **RQ2:** How does the number of federated clients affect attack success?
 - **RQ3:** How does model complexity influence privacy leakage?
 
@@ -104,10 +105,9 @@ Both downloaded automatically via `keras.datasets` — no manual upload required
 |---|---|---|---|
 | Random baseline | — | No | 01, 02 |
 | Threshold attack | Max softmax confidence | No | 01, 02 |
-| Loss-based attack | Cross-entropy loss scalar | No | 01–06 |
-| Black-box LR | 6 architecture-agnostic features | Yes (real data) | 01, 02 |
-| Shadow model | 6 architecture-agnostic features | Yes (shadow data only) | 05 |
-| White-box gradient | Per-layer gradient norms + loss + confidence | Yes (real data) | 06 |
+| Loss-based attack | Cross-entropy loss scalar | No | 01–04 |
+| Shadow model | 6 architecture-agnostic features | No (shadow data only) | 05 |
+| White-box gradient | Per-layer gradient norms + loss + confidence | No (gradient access) | 06 |
 
 The 6 architecture-agnostic features: max confidence, prediction entropy, top-3 confidence values, loss proxy.
 
@@ -119,10 +119,10 @@ DP-SGD implemented from scratch using TensorFlow `GradientTape` — no external 
 
 | Configuration | ε | σ | Global Acc | Loss AUC |
 |---|---|---|---|---|
-| No DP | ∞ | 0.0 | ~67% | ~0.516 |
-| Weak DP | 50 | 0.5 | TBD | TBD |
-| Moderate DP | 10 | 1.1 | ~12% | ~0.465 |
-| Strong DP | 1 | 3.0 | ~17% | ~0.498 |
+| No DP | ∞ | 0.0 | 66.9% | 0.512 |
+| Weak DP | 50 | 0.5 | 21.6% | 0.504 |
+| Moderate DP | 10 | 1.1 | 12.1% | 0.465 |
+| Strong DP | 1 | 3.0 | 17.0% | 0.498 |
 
 ---
 
@@ -159,6 +159,7 @@ All notebooks run on Google Colab with a T4 GPU. No file uploads required.
 - Nasr et al. (2019) — Comprehensive Privacy Analysis of Deep Learning
 - Yeom et al. (2018) — Privacy Risk in Machine Learning: Analyzing the Connection to Overfitting
 - Bai et al. (2024) — Membership Inference Attacks and Defenses in Federated Learning: A Survey
+- Salem et al. (2019) — ML-Leaks: Model and Data Independent Membership Inference Attacks
 
 ---
 
