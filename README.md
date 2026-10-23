@@ -8,7 +8,7 @@ Supervisor: Kiss Péter
 
 ## Overview
 
-This project presents a systematic empirical evaluation of membership inference attacks (MIAs) against federated learning models trained using the Federated Averaging (FedAvg) algorithm. The evaluation is structured across three tiers of attacker capability and seven research questions, implemented across seven self-contained reproducible notebooks on CIFAR-10 and CIFAR-100 datasets under both IID and Non-IID data distributions.
+This project presents a systematic empirical evaluation of membership inference attacks (MIAs) against federated learning models trained using the Federated Averaging (FedAvg) algorithm. The evaluation is structured across three tiers of attacker capability and eight research questions, implemented across seven self-contained reproducible notebooks on CIFAR-10 and CIFAR-100 datasets under both IID and Non-IID data distributions.
 
 The central question: **can an adversary determine whose data was used to train a federated learning model, using only the model's prediction outputs?**
 
@@ -22,6 +22,7 @@ The central question: **can an adversary determine whose data was used to train 
 - The **white-box gradient attack** achieves the highest AUC of 0.575 (IID) and 0.616 (Non-IID) — confirming gradient access provides the strongest membership signal
 - **Non-IID data heterogeneity** consistently amplifies all attack types — loss AUC increases by +0.026 on CIFAR-10 under moderate Non-IID
 - **DP-SGD** successfully suppresses attacks to near-random chance but incurs severe accuracy costs — hyperparameter tuning required for a practical operating point
+- **FedAvg provides a measurable privacy advantage over centralised training** — loss-based AUC reduced by +0.035 through the averaging mechanism (RQ8)
 
 ---
 
@@ -44,7 +45,7 @@ The central question: **can an adversary determine whose data was used to train 
 ```
 .
 ├── notebooks/
-│   ├── 01_cifar10_experiments.ipynb      # RQ1, RQ2, RQ3 — CIFAR-10 baseline
+│   ├── 01_cifar10_experiments.ipynb      # RQ1, RQ2, RQ3, RQ8 — CIFAR-10 baseline + FL vs centralised
 │   ├── 02_cifar100_experiments.ipynb     # RQ1, RQ2, RQ3 — CIFAR-100 baseline
 │   ├── 03a_noniid_cifar10.ipynb          # RQ4 — Non-IID CIFAR-10
 │   ├── 03b_noniid_cifar100.ipynb         # RQ4 — Non-IID CIFAR-100
@@ -75,6 +76,7 @@ The central question: **can an adversary determine whose data was used to train 
 **Tier 3 — Realistic and Advanced Attacks**
 - **RQ6:** Can a shadow model attack using similar-domain data (no real training data access) successfully infer membership?
 - **RQ7:** How much additional membership information does white-box gradient access provide?
+- **RQ8:** Does FedAvg provide a measurable privacy advantage over centralised (single-node) training?
 
 ---
 
@@ -105,11 +107,23 @@ Both downloaded automatically via `keras.datasets` — no manual upload required
 |---|---|---|---|
 | Random baseline | — | No | 01, 02 |
 | Threshold attack | Max softmax confidence | No | 01, 02 |
-| Loss-based attack | Cross-entropy loss scalar | No | 01–04 |
+| Loss-based attack | Cross-entropy loss scalar | No | 01–05 |
 | Shadow model | 6 architecture-agnostic features | No (shadow data only) | 05 |
 | White-box gradient | Per-layer gradient norms + loss + confidence | No (gradient access) | 06 |
 
 The 6 architecture-agnostic features: max confidence, prediction entropy, top-3 confidence values, loss proxy.
+
+---
+
+## FL vs Centralised Comparison (RQ8)
+
+| Setting | Global Acc | Threshold AUC | Loss AUC |
+|---|---|---|---|
+| Centralised (single node) | 0.7039 | 0.5325 | 0.5705 |
+| FedAvg 5 clients (IID) | 0.7160 | 0.5357 | 0.5357 |
+| **FL Privacy Gain** | +0.012 | -0.003 | **+0.035** |
+
+FedAvg provides a measurable privacy benefit of +0.035 loss AUC reduction over centralised training.
 
 ---
 
