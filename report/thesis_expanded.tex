@@ -284,12 +284,15 @@ three tiers of attacker capability:
         inference signal, and at what cost to model utility?
 \end{itemize}
 
-\noindent\textbf{Tier 3 --- Realistic and Advanced Attacks (RQ6--RQ7):}
+\noindent\textbf{Tier 3 --- Realistic and Advanced Attacks (RQ6--RQ8):}
 \begin{itemize}[leftmargin=1.5em, itemsep=4pt]
   \item \textbf{RQ6:} Can a shadow model attack --- using similar but different
         data and no access to real training samples --- successfully infer
         membership in a federated learning model?
   \item \textbf{RQ7:} How much additional membership information does white-box
+  gradient access provide compared to black-box and shadow model attacks?
+  \item \textbf{RQ8:} Does FedAvg provide a measurable privacy advantage over
+  centralised (single-node) training under the same experimental conditions?
         gradient access provide compared to black-box and shadow model attacks,
         and does this advantage increase under Non-IID conditions?
 \end{itemize}
@@ -1195,6 +1198,7 @@ seven research questions and seven notebooks.
     RQ5 & 04 & C-10 & Loss-based & $\varepsilon$: $\infty$, 50, 10, 1 \\
     RQ6 & 05 & C-10 (shadow: C-100) & Shadow model & Realistic attacker \\
     RQ7 & 06 & C-10 & White-box gradient & Gradient access \\
+    RQ8 & 01 & C-10 & Threshold + Loss & FL vs centralised \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1823,6 +1827,56 @@ that client specialisation leaves stronger gradient traces.
   57.7\% reflecting a shift in the ROC operating point. The Non-IID white-box
   AUC of 0.616 is the highest result across the entire study.}
   \label{fig:whitebox_noniid}
+\end{figure}
+
+\section{FL vs Centralised Training Comparison (RQ8)}
+
+Table~\ref{tab:rq8} presents the direct comparison between centralised (single-node)
+training and FedAvg federated training on CIFAR-10, using the same small CNN
+architecture, same number of epochs/rounds (10), and the same threshold and
+loss-based attacks.
+
+\begin{table}[H]
+  \centering
+  \caption{RQ8 — FL vs centralised training attack comparison (CIFAR-10, small CNN, 10 epochs/rounds).}
+  \label{tab:rq8}
+  \begin{tabular}{lccc}
+    \toprule
+    \textbf{Setting} & \textbf{Global Acc.} & \textbf{Threshold AUC} & \textbf{Loss AUC} \\
+    \midrule
+    Centralised (single node) & 0.7039 & 0.5325 & 0.5705 \\
+    FedAvg 5 clients (IID)    & 0.7160 & 0.5357 & 0.5357 \\
+    \midrule
+    \textit{FL Privacy Gain}  & $+0.012$ & $-0.003$ & $\mathbf{+0.035}$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The centralised model achieves loss-based AUC of 0.571, compared to 0.536 for
+FedAvg — a difference of +0.035. This confirms that FedAvg's weight averaging
+mechanism provides a measurable and meaningful privacy benefit over standard
+centralised training: by diluting per-sample memorisation signals across multiple
+clients, FedAvg reduces the loss gap between members and non-members that the
+loss-based attack exploits. The threshold attack AUC is nearly identical in both
+settings (0.533 vs 0.536), confirming that the confidence vector structure is
+similarly suppressed in both cases. The global accuracy is comparable (70.4\%
+centralised vs 71.6\% FedAvg), making this a fair privacy comparison.
+
+\textbf{Key finding (RQ8):} FedAvg provides a measurable privacy advantage over
+centralised training — loss-based attack AUC is reduced by 0.035 through the
+averaging mechanism. However, both settings remain vulnerable to loss-based
+signals, confirming that federation alone is not sufficient as a complete privacy
+mechanism.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{rq8_fl_vs_centralised.png}
+  \caption{RQ8: FL vs centralised training — privacy comparison on CIFAR-10.
+  Left: threshold attack AUC is nearly identical in both settings. Right:
+  loss-based attack AUC is higher for centralised (0.570) than FedAvg (0.536),
+  confirming that FedAvg's averaging mechanism provides a measurable reduction
+  in membership leakage.}
+  \label{fig:rq8}
 \end{figure}
 
 \section{Complete Attack Hierarchy Summary}

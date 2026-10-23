@@ -355,7 +355,7 @@
   <div class="arrow">↓</div>
 
   <!-- STEP 6: TIER 3 -->
-  <div class="tier-header">TIER 3 — Realistic &amp; Advanced Attacks (RQ6 · RQ7)</div>
+  <div class="tier-header">TIER 3 — Realistic &amp; Advanced Attacks (RQ6 · RQ7 · RQ8)</div>
   <div class="step">
     <div class="step-label"><span class="step-num">06</span>SHADOW MODEL</div>
     <div class="step-body">
@@ -403,6 +403,36 @@
           <div class="result-item">
             <div class="ri-method">vs Loss-based</div>
             <div class="ri-val val-navy">+0.006 IID · +0.051 Non-IID</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">↓</div>
+
+  <div class="step">
+    <div class="step-label"><span class="step-num">08</span>FL vs CENTRALISED</div>
+    <div class="step-body">
+      <div class="panel">
+        <div class="panel-title">FL vs Centralised Training — RQ8</div>
+        <ul>
+          <li>Same small CNN trained centrally on full CIFAR-10 (no FL, no averaging)</li>
+          <li>Same threshold and loss-based attacks applied to both settings</li>
+          <li>Directly answers: does FedAvg provide real privacy benefit?</li>
+        </ul>
+        <div class="result-row">
+          <div class="result-item">
+            <div class="ri-method">Centralised</div>
+            <div class="ri-val val-slate">Acc 70.4% · Loss AUC 0.570</div>
+          </div>
+          <div class="result-item">
+            <div class="ri-method">FedAvg 5 clients</div>
+            <div class="ri-val val-teal" style="color:#0F766E">Acc 71.6% · Loss AUC 0.536</div>
+          </div>
+          <div class="result-item">
+            <div class="ri-method">FL Privacy Gain</div>
+            <div class="ri-val val-navy">+0.035 AUC reduction</div>
           </div>
         </div>
       </div>
