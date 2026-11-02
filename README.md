@@ -1,11 +1,3 @@
-# Evaluating Black-Box Membership Inference Attacks in Federated Learning Systems
-
-**Abdihakim Yussuf Abdi**  
-Data Science MSc — Eötvös Loránd University (ELTE), Budapest, 2026  
-Supervisor: Kiss Péter
-
----
-
 ## Overview
 
 This project presents a systematic empirical evaluation of membership inference attacks (MIAs) against federated learning models trained using the Federated Averaging (FedAvg) algorithm. The evaluation is structured across three tiers of attacker capability and eight research questions, implemented across seven self-contained reproducible notebooks on CIFAR-10 and CIFAR-100 datasets under both IID and Non-IID data distributions.
